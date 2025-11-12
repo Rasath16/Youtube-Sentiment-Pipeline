@@ -1,0 +1,37 @@
+EXPERIMENT 7: FINAL MODEL SUMMARY
+================================================================================
+
+BEST HYPERPARAMETERS
+--------------------------------------------------------------------------------
+C: 0.23098248082428105
+loss: squared_hinge
+penalty: l1
+max_iter: 1000
+tol: 9.868483511694041e-05
+class_weight: balanced
+
+EVALUATION METRICS
+--------------------------------------------------------------------------------
+Accuracy: 0.789990
+Weighted F1-Score: 0.787295
+Weighted Precision: 0.803485
+Weighted Recall: 0.789990
+CV F1-Score: 0.779451 (+/- 0.006199)
+
+PER-CLASS METRICS
+--------------------------------------------------------------------------------
+
+Class -1:
+  Precision: 0.716189
+  Recall: 0.651515
+  F1-Score: 0.682323
+
+Class 0:
+  Precision: 0.736634
+  Recall: 0.958877
+  F1-Score: 0.833190
+
+Class 1:
+  Precision: 0.902756
+  Recall: 0.727013
+  F1-Score: 0.805409
