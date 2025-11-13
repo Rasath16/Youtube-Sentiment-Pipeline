@@ -51,3 +51,34 @@ stages:
       hash: md5
       md5: 5ce2d83e1c83b5d9eb67379aef37171f
       size: 5545070
+  model_building:
+    cmd: python src/model/model_building.py
+    deps:
+    - path: data/interim/train_processed.csv
+      hash: md5
+      md5: 5ce2d83e1c83b5d9eb67379aef37171f
+      size: 5545070
+    - path: src/model/model_building.py
+      hash: md5
+      md5: 8f7f7753fcc66ff95474e17619fc29d1
+      size: 11995
+    params:
+      params.yaml:
+        model_building.C: 0.23098248082428105
+        model_building.class_weight: balanced
+        model_building.dual: false
+        model_building.loss: squared_hinge
+        model_building.max_iter: 1000
+        model_building.model_type: LinearSVC
+        model_building.penalty: l1
+        model_building.random_state: 42
+        model_building.tol: 9.868483511694041e-05
+    outs:
+    - path: models/linearsvc_model.pkl
+      hash: md5
+      md5: 26a20ce97dd29b954ed393ced679ac2f
+      size: 24634
+    - path: models/tfidf_vectorizer.pkl
+      hash: md5
+      md5: e69bbe0843279dc02c9b419375e9a28d
+      size: 36806
