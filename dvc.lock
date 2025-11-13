@@ -1,0 +1,53 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python src/data/data_ingestion.py
+    deps:
+    - path: src/data/data_ingestion.py
+      hash: md5
+      md5: e90d6dc6ff3368be83ccad8b771c0aac
+      size: 6863
+    params:
+      params.yaml:
+        data_ingestion.random_state: 42
+        data_ingestion.stratify: true
+        data_ingestion.test_size: 0.2
+    outs:
+    - path: data/raw/test.csv
+      hash: md5
+      md5: 7543dc2bae90db8be7d7066e45bf6f2f
+      size: 1339353
+    - path: data/raw/train.csv
+      hash: md5
+      md5: 9f24dbb77b14e2a6d92dc568d093286e
+      size: 5580348
+  data_preprocessing:
+    cmd: python src/data/data_preprocessing.py
+    deps:
+    - path: data/raw/test.csv
+      hash: md5
+      md5: 7543dc2bae90db8be7d7066e45bf6f2f
+      size: 1339353
+    - path: data/raw/train.csv
+      hash: md5
+      md5: 9f24dbb77b14e2a6d92dc568d093286e
+      size: 5580348
+    - path: src/data/data_preprocessing.py
+      hash: md5
+      md5: 72230a5c6ce8995e34c9a89f5c94c98e
+      size: 9172
+    params:
+      params.yaml:
+        text_preprocessing.lemmatization: true
+        text_preprocessing.lowercase: true
+        text_preprocessing.remove_punctuation: true
+        text_preprocessing.remove_stopwords: true
+    outs:
+    - path: data/interim/test_processed.csv
+      hash: md5
+      md5: 40842f9ce21e23bc13bfcbc2684150e2
+      size: 1330604
+    - path: data/interim/train_processed.csv
+      hash: md5
+      md5: 5ce2d83e1c83b5d9eb67379aef37171f
+      size: 5545070

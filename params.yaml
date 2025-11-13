@@ -1,0 +1,145 @@
+# ============================================================================
+# PARAMETERS CONFIGURATION FILE
+# Model: LinearSVC (Final Production Model - Experiment 7)
+# ============================================================================
+
+# Data Ingestion Parameters
+data_ingestion:
+  test_size: 0.20
+  random_state: 42
+  stratify: true
+
+# Text Preprocessing Parameters
+text_preprocessing:
+  remove_stopwords: true
+  lowercase: true
+  remove_punctuation: true
+  remove_numbers: false
+  lemmatization: true
+
+# Feature Engineering Parameters
+feature_engineering:
+  vectorizer_type: "TfidfVectorizer"
+  ngram_range: [1, 2] # Bigrams (unigrams + bigrams)
+  max_features: 1000
+  min_df: 1
+  max_df: 1.0
+  use_idf: true
+  sublinear_tf: false
+
+# Imbalance Handling Parameters
+imbalance_handling:
+  method: "undersampling" # Best performing method from Experiment 4
+  random_state: 42
+  sampling_strategy: "auto"
+
+# Model Building Parameters - LinearSVC
+model_building:
+  model_type: "LinearSVC"
+
+  # Hyperparameters (Optimized from Experiment 7)
+  C: 0.23098248082428105 # Regularization parameter
+  loss: "squared_hinge" # Loss function
+  penalty: "l1" # Regularization penalty (L1 for feature selection)
+  dual: false # Dual formulation (must be False for L1 penalty)
+  max_iter: 1000 # Maximum iterations
+  tol: 9.868483511694041e-05 # Tolerance for stopping criterion
+  class_weight: "balanced" # Handle remaining class imbalance
+  random_state: 42
+
+  # Additional LinearSVC parameters
+  fit_intercept: true
+  intercept_scaling: 1
+  multi_class: "ovr" # One-vs-Rest for multi-class classification
+  verbose: 0
+
+# Hyperparameter Tuning Parameters (For Future Re-tuning)
+hyperparameter_tuning:
+  method: "optuna"
+  n_trials: 100
+  direction: "maximize"
+  optimization_metric: "f1_weighted"
+
+  # Search space for C
+  C_min: 0.01
+  C_max: 100.0
+  C_log: true
+
+  # Search space for loss
+  loss_options: ["hinge", "squared_hinge"]
+
+  # Search space for penalty
+  penalty_options: ["l1", "l2"]
+
+  # Search space for max_iter
+  max_iter_min: 1000
+  max_iter_max: 5000
+  max_iter_step: 1000
+
+  # Search space for tolerance
+  tol_min: 1.0e-5
+  tol_max: 1.0e-3
+  tol_log: true
+
+# Model Evaluation Parameters
+model_evaluation:
+  cv_folds: 5
+  cv_shuffle: true
+  cv_random_state: 42
+
+  # Metrics to track
+  metrics:
+    - "accuracy"
+    - "precision_weighted"
+    - "precision_macro"
+    - "recall_weighted"
+    - "recall_macro"
+    - "f1_weighted"
+    - "f1_macro"
+
+  # Per-class metrics
+  track_per_class: true
+
+# MLflow Tracking Parameters
+mlflow:
+  tracking_uri: "http://ec2-54-211-18-166.compute-1.amazonaws.com:5000/"
+  experiment_name: "Experiment 7 - LinearSVC Final Model"
+
+  # Tags
+  tags:
+    model_type: "LinearSVC"
+    experiment_type: "final_model_selection"
+    preprocessing: "tfidf_bigrams"
+    imbalance_method: "undersampling"
+
+# Model Performance Benchmarks (From Experiment 7)
+performance_benchmarks:
+  accuracy: 0.789990
+  f1_weighted: 0.787295
+  precision_weighted: 0.803485
+  recall_weighted: 0.789990
+  cv_f1_mean: 0.779451
+  cv_f1_std: 0.006199
+
+  # Per-class performance
+  class_minus_1:
+    precision: 0.716189
+    recall: 0.651515
+    f1_score: 0.682323
+
+  class_0:
+    precision: 0.736634
+    recall: 0.958877
+    f1_score: 0.833190
+
+  class_1:
+    precision: 0.902756
+    recall: 0.727013
+    f1_score: 0.805409
+
+# Deployment Parameters
+deployment:
+  model_format: "pickle"
+  model_name: "final_linearsvc_model"
+  model_version: "1.0.0"
+  production_ready: true

@@ -1,0 +1,126 @@
+# DVC PIPELINE CONFIGURATION
+# Model: LinearSVC (Final Production Model)
+
+stages:
+  data_ingestion:
+    cmd: python src/data/data_ingestion.py
+    deps:
+      - src/data/data_ingestion.py
+    params:
+      - data_ingestion.test_size
+      - data_ingestion.random_state
+      - data_ingestion.stratify
+    outs:
+      - data/raw/train.csv
+      - data/raw/test.csv
+
+  data_preprocessing:
+    cmd: python src/data/data_preprocessing.py
+    deps:
+      - data/raw/train.csv
+      - data/raw/test.csv
+      - src/data/data_preprocessing.py
+    params:
+      - text_preprocessing.remove_stopwords
+      - text_preprocessing.lowercase
+      - text_preprocessing.remove_punctuation
+      - text_preprocessing.lemmatization
+    outs:
+      - data/interim/train_processed.csv
+      - data/interim/test_processed.csv
+
+  feature_engineering:
+    cmd: python src/features/feature_engineering.py
+    deps:
+      - data/interim/train_processed.csv
+      - data/interim/test_processed.csv
+      - src/features/feature_engineering.py
+    params:
+      - feature_engineering.vectorizer_type
+      - feature_engineering.ngram_range
+      - feature_engineering.max_features
+      - feature_engineering.min_df
+      - feature_engineering.max_df
+      - feature_engineering.use_idf
+    outs:
+      - data/processed/X_train_vec.pkl
+      - data/processed/X_test_vec.pkl
+      - data/processed/y_train.pkl
+      - data/processed/y_test.pkl
+      - models/tfidf_vectorizer.pkl
+
+  handle_imbalance:
+    cmd: python src/features/handle_imbalance.py
+    deps:
+      - data/processed/X_train_vec.pkl
+      - data/processed/y_train.pkl
+      - src/features/handle_imbalance.py
+    params:
+      - imbalance_handling.method
+      - imbalance_handling.random_state
+      - imbalance_handling.sampling_strategy
+    outs:
+      - data/processed/X_train_resampled.pkl
+      - data/processed/y_train_resampled.pkl
+
+  model_building:
+    cmd: python src/model/model_building.py
+    deps:
+      - data/processed/X_train_resampled.pkl
+      - data/processed/y_train_resampled.pkl
+      - src/model/model_building.py
+    params:
+      - model_building.model_type
+      - model_building.C
+      - model_building.loss
+      - model_building.penalty
+      - model_building.dual
+      - model_building.max_iter
+      - model_building.tol
+      - model_building.class_weight
+      - model_building.random_state
+    outs:
+      - models/linearsvc_model.pkl
+
+  model_evaluation:
+    cmd: python src/model/model_evaluation.py
+    deps:
+      - models/linearsvc_model.pkl
+      - models/tfidf_vectorizer.pkl
+      - data/processed/X_test_vec.pkl
+      - data/processed/y_test.pkl
+      - data/processed/X_train_resampled.pkl
+      - data/processed/y_train_resampled.pkl
+      - src/model/model_evaluation.py
+    params:
+      - model_evaluation.cv_folds
+      - model_evaluation.cv_shuffle
+      - model_evaluation.cv_random_state
+      - model_evaluation.metrics
+    metrics:
+      - metrics/metrics.json:
+          cache: false
+    plots:
+      - plots/confusion_matrix.png:
+          cache: false
+      - plots/confusion_matrix_normalized.png:
+          cache: false
+      - plots/per_class_performance.png:
+          cache: false
+    outs:
+      - reports/classification_report.txt
+      - reports/experiment_info.json
+
+  model_registration:
+    cmd: python src/model/register_model.py
+    deps:
+      - models/linearsvc_model.pkl
+      - models/tfidf_vectorizer.pkl
+      - reports/experiment_info.json
+      - src/model/register_model.py
+    params:
+      - mlflow.tracking_uri
+      - mlflow.experiment_name
+      - deployment.model_version
+    outs:
+      - reports/model_registry_info.json
