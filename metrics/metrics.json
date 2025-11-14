@@ -1,0 +1,8 @@
+{
+    "test_accuracy": 0.8030982470444353,
+    "test_precision_weighted": 0.8132442295533967,
+    "test_recall_weighted": 0.8030982470444353,
+    "test_f1_weighted": 0.7996468530585639,
+    "cv_f1_mean": 0.8159162410798831,
+    "cv_f1_std": 0.0030938663123865626
+}

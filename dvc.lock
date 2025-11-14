@@ -72,7 +72,7 @@ stages:
         model_building.model_type: LinearSVC
         model_building.penalty: l1
         model_building.random_state: 42
-        model_building.tol: 9.868483511694041e-05
+        model_building.tol: 9.868483511694040e-05
     outs:
     - path: models/linearsvc_model.pkl
       hash: md5
@@ -82,3 +82,88 @@ stages:
       hash: md5
       md5: e69bbe0843279dc02c9b419375e9a28d
       size: 36806
+  model_evaluation:
+    cmd: python src/model/model_evaluation.py
+    deps:
+    - path: data/interim/test_processed.csv
+      hash: md5
+      md5: 40842f9ce21e23bc13bfcbc2684150e2
+      size: 1330604
+    - path: data/interim/train_processed.csv
+      hash: md5
+      md5: 5ce2d83e1c83b5d9eb67379aef37171f
+      size: 5545070
+    - path: models/linearsvc_model.pkl
+      hash: md5
+      md5: 26a20ce97dd29b954ed393ced679ac2f
+      size: 24634
+    - path: models/tfidf_vectorizer.pkl
+      hash: md5
+      md5: e69bbe0843279dc02c9b419375e9a28d
+      size: 36806
+    - path: src/model/model_evaluation.py
+      hash: md5
+      md5: 9265777be0ab35a3aae4e3c9f35c6eda
+      size: 20812
+    params:
+      params.yaml:
+        model_evaluation.cv_folds: 5
+        model_evaluation.cv_random_state: 42
+        model_evaluation.cv_shuffle: true
+        model_evaluation.metrics:
+        - accuracy
+        - precision_weighted
+        - precision_macro
+        - recall_weighted
+        - recall_macro
+        - f1_weighted
+        - f1_macro
+    outs:
+    - path: metrics/metrics.json
+      hash: md5
+      md5: 0273a416402fe9b0842c7228e34e113a
+      size: 271
+    - path: plots/confusion_matrix.png
+      hash: md5
+      md5: 77ede29819b8601438892abb4fd2c057
+      size: 85112
+    - path: plots/confusion_matrix_normalized.png
+      hash: md5
+      md5: 7b17d56721d397380d9d77df50f402fe
+      size: 107283
+    - path: plots/per_class_performance.png
+      hash: md5
+      md5: bfbeac4c839c4e378927a3b1b2184ad0
+      size: 74849
+    - path: reports/classification_report.txt
+      hash: md5
+      md5: 7ba62135806a6c38b179c6da5e1d8a1e
+      size: 625
+    - path: reports/experiment_info.json
+      hash: md5
+      md5: 90170b84e526a3e251331487de23822e
+      size: 492
+  model_registration:
+    cmd: python src/model/register_model.py
+    deps:
+    - path: reports/experiment_info.json
+      hash: md5
+      md5: 90170b84e526a3e251331487de23822e
+      size: 492
+    - path: src/model/register_model.py
+      hash: md5
+      md5: 7edc444d0916437e276d43497eee9a8b
+      size: 9443
+    params:
+      params.yaml:
+        deployment.model_name: final_linearsvc_model
+        deployment.model_version: 1.0.0
+        deployment.production_ready: true
+        mlflow.experiment_name: Final Model Evaluation
+        mlflow.tracking_uri: 
+          http://ec2-54-211-18-166.compute-1.amazonaws.com:5000/
+    outs:
+    - path: reports/model_registry_info.json
+      hash: md5
+      md5: 5a15ad237558e9aa757ef88c6b39d405
+      size: 835

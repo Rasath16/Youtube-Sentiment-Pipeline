@@ -103,7 +103,7 @@ model_evaluation:
 # MLflow Tracking Parameters
 mlflow:
   tracking_uri: "http://ec2-54-211-18-166.compute-1.amazonaws.com:5000/"
-  experiment_name: "Experiment 7 - LinearSVC Final Model"
+  experiment_name: "Final Model Evaluation"
 
   # Tags
   tags:

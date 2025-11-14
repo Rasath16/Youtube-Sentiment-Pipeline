@@ -47,3 +47,44 @@ stages:
     outs:
       - models/linearsvc_model.pkl
       - models/tfidf_vectorizer.pkl
+
+  model_evaluation:
+    cmd: python src/model/model_evaluation.py
+    deps:
+      - models/linearsvc_model.pkl
+      - models/tfidf_vectorizer.pkl
+      - data/interim/train_processed.csv
+      - data/interim/test_processed.csv
+      - src/model/model_evaluation.py
+    params:
+      - model_evaluation.cv_folds
+      - model_evaluation.cv_shuffle
+      - model_evaluation.cv_random_state
+      - model_evaluation.metrics
+    metrics:
+      - metrics/metrics.json:
+          cache: false
+    plots:
+      - plots/confusion_matrix.png:
+          cache: false
+      - plots/confusion_matrix_normalized.png:
+          cache: false
+      - plots/per_class_performance.png:
+          cache: false
+    outs:
+      - reports/classification_report.txt
+      - reports/experiment_info.json
+
+  model_registration:
+    cmd: python src/model/register_model.py
+    deps:
+      - reports/experiment_info.json
+      - src/model/register_model.py
+    params:
+      - mlflow.tracking_uri
+      - mlflow.experiment_name
+      - deployment.model_name
+      - deployment.model_version
+      - deployment.production_ready
+    outs:
+      - reports/model_registry_info.json
