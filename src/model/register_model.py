@@ -230,7 +230,7 @@ def main():
         
         # Get deployment parameters
         deployment_params = params['deployment']
-        model_name = deployment_params.get('model_name', 'reddit_sentiment_linearsvc')
+        model_name = deployment_params.get('model_name', 'final_linearsvc_model')
         model_version_str = deployment_params.get('model_version', '1.0.0')
         
         # Prepare tags
