@@ -1,6 +1,7 @@
 # ============================================================================
 # PARAMETERS CONFIGURATION FILE
-# Model: LinearSVC (Final Production Model - Experiment 7)
+# Model: LightGBM (Final Production Model - Experiment 8)
+# Imbalance Handling: ADASYN
 # ============================================================================
 
 # Data Ingestion Parameters
@@ -29,29 +30,29 @@ feature_engineering:
 
 # Imbalance Handling Parameters
 imbalance_handling:
-  method: "undersampling" # Best performing method from Experiment 4
+  method: "adasyn" # Best performing method from Experiment 5
   random_state: 42
-  sampling_strategy: "auto"
 
-# Model Building Parameters - LinearSVC
+# Model Building Parameters - LightGBM
 model_building:
-  model_type: "LinearSVC"
+  model_type: "LightGBM"
 
-  # Hyperparameters (Optimized from Experiment 7)
-  C: 0.23098248082428105 # Regularization parameter
-  loss: "squared_hinge" # Loss function
-  penalty: "l1" # Regularization penalty (L1 for feature selection)
-  dual: false # Dual formulation (must be False for L1 penalty)
-  max_iter: 1000 # Maximum iterations
-  tol: 9.868483511694041e-05 # Tolerance for stopping criterion
-  class_weight: "balanced" # Handle remaining class imbalance
+  # Hyperparameters (Optimized from Experiment 8 - 100 trials)
+  n_estimators: 282
+  learning_rate: 0.18918009986816446
+  num_leaves: 23
+  max_depth: 5
+  min_child_samples: 5
+  subsample: 0.7735411813855708
+  colsample_bytree: 0.6691021439526331
+  reg_alpha: 4.959913257818726e-08 # L1 regularization
+  reg_lambda: 4.9746893048071984e-05 # L2 regularization
+  min_split_gain: 0.15980739765326025
+
+  # Additional LightGBM parameters
   random_state: 42
-
-  # Additional LinearSVC parameters
-  fit_intercept: true
-  intercept_scaling: 1
-  multi_class: "ovr" # One-vs-Rest for multi-class classification
-  verbose: 0
+  n_jobs: -1 # Use all CPU cores
+  verbose: -1 # Suppress warnings
 
 # Hyperparameter Tuning Parameters (For Future Re-tuning)
 hyperparameter_tuning:
@@ -60,26 +61,48 @@ hyperparameter_tuning:
   direction: "maximize"
   optimization_metric: "f1_weighted"
 
-  # Search space for C
-  C_min: 0.01
-  C_max: 100.0
-  C_log: true
+  # Search space for n_estimators
+  n_estimators_min: 50
+  n_estimators_max: 300
 
-  # Search space for loss
-  loss_options: ["hinge", "squared_hinge"]
+  # Search space for learning_rate
+  learning_rate_min: 0.001
+  learning_rate_max: 0.3
+  learning_rate_log: true
 
-  # Search space for penalty
-  penalty_options: ["l1", "l2"]
+  # Search space for num_leaves
+  num_leaves_min: 10
+  num_leaves_max: 100
 
-  # Search space for max_iter
-  max_iter_min: 1000
-  max_iter_max: 5000
-  max_iter_step: 1000
+  # Search space for max_depth
+  max_depth_min: 3
+  max_depth_max: 15
 
-  # Search space for tolerance
-  tol_min: 1.0e-5
-  tol_max: 1.0e-3
-  tol_log: true
+  # Search space for min_child_samples
+  min_child_samples_min: 5
+  min_child_samples_max: 100
+
+  # Search space for subsample
+  subsample_min: 0.5
+  subsample_max: 1.0
+
+  # Search space for colsample_bytree
+  colsample_bytree_min: 0.5
+  colsample_bytree_max: 1.0
+
+  # Search space for reg_alpha (L1)
+  reg_alpha_min: 1.0e-8
+  reg_alpha_max: 10.0
+  reg_alpha_log: true
+
+  # Search space for reg_lambda (L2)
+  reg_lambda_min: 1.0e-8
+  reg_lambda_max: 10.0
+  reg_lambda_log: true
+
+  # Search space for min_split_gain
+  min_split_gain_min: 0.0
+  min_split_gain_max: 1.0
 
 # Model Evaluation Parameters
 model_evaluation:
@@ -103,43 +126,65 @@ model_evaluation:
 # MLflow Tracking Parameters
 mlflow:
   tracking_uri: "http://ec2-54-211-18-166.compute-1.amazonaws.com:5000/"
-  experiment_name: "Final Model Evaluation"
+  experiment_name: "Final Model Evaluation - LightGBM ADASYN"
 
   # Tags
   tags:
-    model_type: "LinearSVC"
+    model_type: "LightGBM"
     experiment_type: "final_model_selection"
     preprocessing: "tfidf_bigrams"
-    imbalance_method: "undersampling"
+    imbalance_method: "adasyn"
 
-# Model Performance Benchmarks (From Experiment 7)
+# Model Performance Benchmarks (From Experiment 8)
 performance_benchmarks:
-  accuracy: 0.789990
-  f1_weighted: 0.787295
-  precision_weighted: 0.803485
-  recall_weighted: 0.789990
-  cv_f1_mean: 0.779451
-  cv_f1_std: 0.006199
+  accuracy: 0.794627
+  f1_weighted: 0.791073
+  precision_weighted: 0.800629
+  recall_weighted: 0.794627
+  cv_f1_mean: 0.792608
+  cv_f1_std: 0.008930
 
   # Per-class performance
-  class_minus_1:
-    precision: 0.716189
-    recall: 0.651515
-    f1_score: 0.682323
+  class_0: # Positive
+    precision: 0.847619
+    recall: 0.840000
+    f1_score: 0.843838
 
-  class_0:
-    precision: 0.736634
-    recall: 0.958877
-    f1_score: 0.833190
+  class_1: # Neutral
+    precision: 0.825926
+    recall: 0.805556
+    f1_score: 0.815660
 
-  class_1:
-    precision: 0.902756
-    recall: 0.727013
-    f1_score: 0.805409
+  class_2: # Negative (Minority)
+    precision: 0.679487
+    recall: 0.648148
+    f1_score: 0.663202
 
 # Deployment Parameters
 deployment:
   model_format: "pickle"
-  model_name: "final_linearsvc_model"
+  model_name: "final_lightgbm_adasyn_model"
   model_version: "1.0.0"
   production_ready: true
+
+  # Model artifacts
+  artifacts:
+    - "tfidf_vectorizer.pkl"
+    - "lightgbm_model.pkl"
+    - "lightgbm_model.txt" # Native LightGBM format
+
+# Model Comparison Summary
+comparison:
+  previous_best_model: "LinearSVC"
+  previous_best_accuracy: 0.789990
+  previous_best_f1: 0.787295
+
+  current_model: "LightGBM + ADASYN"
+  current_accuracy: 0.794627
+  current_f1: 0.791073
+
+  improvement:
+    accuracy_gain: 0.004637 # +0.46%
+    f1_gain: 0.003778 # +0.38%
+
+  recommendation: "Deploy LightGBM + ADASYN for best overall performance"

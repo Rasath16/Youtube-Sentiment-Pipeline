@@ -4,9 +4,9 @@ import os
 import pickle
 import yaml
 import logging
-from sklearn.svm import LinearSVC
+from lightgbm import LGBMClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
-from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import ADASYN
 
 # Logging configuration
 logger = logging.getLogger('model_building')
@@ -120,7 +120,7 @@ def apply_tfidf(train_data: pd.DataFrame, params: dict) -> tuple:
 
 def handle_imbalance(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> tuple:
     """
-    Apply undersampling to handle class imbalance.
+    Apply ADASYN oversampling to handle class imbalance.
     
     Args:
         X_train: Training features
@@ -135,20 +135,18 @@ def handle_imbalance(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> 
         imb_params = params['imbalance_handling']
         method = imb_params['method']
         random_state = imb_params['random_state']
-        sampling_strategy = imb_params['sampling_strategy']
         
         logger.info('Handling class imbalance:')
         logger.info(f'  - Method: {method}')
-        logger.info(f'  - Sampling strategy: {sampling_strategy}')
         
         # Log original class distribution
         unique, counts = np.unique(y_train, return_counts=True)
         logger.info(f'Original class distribution: {dict(zip(unique, counts))}')
         
-        if method == 'undersampling':
-            sampler = RandomUnderSampler(
+        if method == 'adasyn':
+            sampler = ADASYN(
                 random_state=random_state,
-                sampling_strategy=sampling_strategy
+                n_neighbors=5  # Default ADASYN parameter
             )
             X_train_resampled, y_train_resampled = sampler.fit_resample(X_train, y_train)
             
@@ -167,9 +165,9 @@ def handle_imbalance(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> 
         raise
 
 
-def train_linearsvc(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> LinearSVC:
+def train_lightgbm(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> LGBMClassifier:
     """
-    Train a LinearSVC model.
+    Train a LightGBM model.
     
     Args:
         X_train: Training features (after resampling)
@@ -177,51 +175,56 @@ def train_linearsvc(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> L
         params: Dictionary with model building parameters
     
     Returns:
-        Trained LinearSVC model
+        Trained LightGBM model
     """
     try:
         # Extract model building parameters
         model_params = params['model_building']
         
-        logger.info('LinearSVC Configuration:')
-        logger.info(f'  - C: {model_params["C"]}')
-        logger.info(f'  - loss: {model_params["loss"]}')
-        logger.info(f'  - penalty: {model_params["penalty"]}')
-        logger.info(f'  - dual: {model_params["dual"]}')
-        logger.info(f'  - max_iter: {model_params["max_iter"]}')
-        logger.info(f'  - tol: {model_params["tol"]}')
-        logger.info(f'  - class_weight: {model_params["class_weight"]}')
+        logger.info('LightGBM Configuration:')
+        logger.info(f'  - n_estimators: {model_params["n_estimators"]}')
+        logger.info(f'  - learning_rate: {model_params["learning_rate"]}')
+        logger.info(f'  - num_leaves: {model_params["num_leaves"]}')
+        logger.info(f'  - max_depth: {model_params["max_depth"]}')
+        logger.info(f'  - min_child_samples: {model_params["min_child_samples"]}')
+        logger.info(f'  - subsample: {model_params["subsample"]}')
+        logger.info(f'  - colsample_bytree: {model_params["colsample_bytree"]}')
+        logger.info(f'  - reg_alpha: {model_params["reg_alpha"]}')
+        logger.info(f'  - reg_lambda: {model_params["reg_lambda"]}')
+        logger.info(f'  - min_split_gain: {model_params["min_split_gain"]}')
         
-        # Initialize LinearSVC model
-        model = LinearSVC(
-            C=model_params['C'],
-            loss=model_params['loss'],
-            penalty=model_params['penalty'],
-            dual=model_params['dual'],
-            max_iter=model_params['max_iter'],
-            tol=model_params['tol'],
-            class_weight=model_params['class_weight'],
+        # Initialize LightGBM model
+        model = LGBMClassifier(
+            n_estimators=model_params['n_estimators'],
+            learning_rate=model_params['learning_rate'],
+            num_leaves=model_params['num_leaves'],
+            max_depth=model_params['max_depth'],
+            min_child_samples=model_params['min_child_samples'],
+            subsample=model_params['subsample'],
+            colsample_bytree=model_params['colsample_bytree'],
+            reg_alpha=model_params['reg_alpha'],
+            reg_lambda=model_params['reg_lambda'],
+            min_split_gain=model_params['min_split_gain'],
             random_state=model_params['random_state'],
-            fit_intercept=model_params['fit_intercept'],
-            intercept_scaling=model_params['intercept_scaling'],
-            multi_class=model_params['multi_class'],
+            n_jobs=model_params['n_jobs'],
             verbose=model_params['verbose']
         )
         
         # Train the model
-        logger.info('Training LinearSVC model...')
+        logger.info('Training LightGBM model...')
         model.fit(X_train, y_train)
-        logger.info('LinearSVC model training completed successfully')
+        logger.info('LightGBM model training completed successfully')
         
         # Log model information
         logger.info(f'Number of classes: {len(model.classes_)}')
         logger.info(f'Classes: {model.classes_}')
-        logger.info(f'Number of iterations: {model.n_iter_}')
+        logger.info(f'Number of trees: {model.n_estimators}')
+        logger.info(f'Number of features: {model.n_features_}')
         
         return model
         
     except Exception as e:
-        logger.error('Error during LinearSVC model training: %s', e)
+        logger.error('Error during LightGBM model training: %s', e)
         raise
 
 
@@ -231,7 +234,7 @@ def save_artifacts(vectorizer, model, root_dir: str) -> None:
     
     Args:
         vectorizer: Trained TF-IDF vectorizer
-        model: Trained LinearSVC model
+        model: Trained LightGBM model
         root_dir: Root directory path
     """
     try:
@@ -245,15 +248,16 @@ def save_artifacts(vectorizer, model, root_dir: str) -> None:
             pickle.dump(vectorizer, f)
         logger.info(f'TF-IDF vectorizer saved to {vectorizer_path}')
         
-        # Save LinearSVC model
-        model_path = os.path.join(models_dir, 'linearsvc_model.pkl')
+        # Save LightGBM model
+        model_path = os.path.join(models_dir, 'lightgbm_model.pkl')
         with open(model_path, 'wb') as f:
             pickle.dump(model, f)
-        logger.info(f'LinearSVC model saved to {model_path}')
+        logger.info(f'LightGBM model saved to {model_path}')
         
-        # Save resampled data for evaluation
-        # Note: In a production pipeline, you might want to save these as well
-        # but for now we'll regenerate them in evaluation
+        # Also save as LightGBM native format (optional, more efficient)
+        model_native_path = os.path.join(models_dir, 'lightgbm_model.txt')
+        model.booster_.save_model(model_native_path)
+        logger.info(f'LightGBM model (native format) saved to {model_native_path}')
         
     except Exception as e:
         logger.error('Error occurred while saving artifacts: %s', e)
@@ -269,7 +273,7 @@ def get_root_directory() -> str:
 def main():
     try:
         logger.info('='*80)
-        logger.info('Starting Model Building Process (LinearSVC)')
+        logger.info('Starting Model Building Process (LightGBM + ADASYN)')
         logger.info('='*80)
         
         # Get root directory
@@ -289,15 +293,15 @@ def main():
         logger.info('-'*80)
         X_train_tfidf, y_train, vectorizer = apply_tfidf(train_data, params)
         
-        # Step 2: Handle class imbalance
-        logger.info('\nStep 2: Handling Class Imbalance')
+        # Step 2: Handle class imbalance with ADASYN
+        logger.info('\nStep 2: Handling Class Imbalance (ADASYN)')
         logger.info('-'*80)
         X_train_resampled, y_train_resampled = handle_imbalance(X_train_tfidf, y_train, params)
         
-        # Step 3: Train the LinearSVC model
-        logger.info('\nStep 3: Training LinearSVC Model')
+        # Step 3: Train the LightGBM model
+        logger.info('\nStep 3: Training LightGBM Model')
         logger.info('-'*80)
-        model = train_linearsvc(X_train_resampled, y_train_resampled, params)
+        model = train_lightgbm(X_train_resampled, y_train_resampled, params)
         
         # Step 4: Save all artifacts
         logger.info('\nStep 4: Saving Artifacts')
@@ -309,7 +313,8 @@ def main():
         logger.info('='*80)
         logger.info(f'Artifacts saved in: {os.path.join(root_dir, "models")}')
         logger.info('  - tfidf_vectorizer.pkl')
-        logger.info('  - linearsvc_model.pkl')
+        logger.info('  - lightgbm_model.pkl')
+        logger.info('  - lightgbm_model.txt (native format)')
         
     except Exception as e:
         logger.error('='*80)
