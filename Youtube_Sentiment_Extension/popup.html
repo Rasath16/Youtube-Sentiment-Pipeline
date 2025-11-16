@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>YouTube Sentiment Insights</title>
+    <meta charset="UTF-8" />
+    <style>
+      /* Modern Dark Theme with Gradient */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+        color: #e0e0e0;
+        width: 400px;
+        max-height: 600px;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      /* Custom Scrollbar */
+      body::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      body::-webkit-scrollbar-track {
+        background: #1e1e2e;
+      }
+
+      body::-webkit-scrollbar-thumb {
+        background: #4ecdc4;
+        border-radius: 4px;
+      }
+
+      body::-webkit-scrollbar-thumb:hover {
+        background: #45b8af;
+      }
+
+      h1 {
+        font-size: 22px;
+        font-weight: 700;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-align: center;
+        margin: 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      #output {
+        padding: 15px;
+      }
+
+      /* Loading Screen */
+      .loading-container {
+        text-align: center;
+        padding: 40px 20px;
+      }
+
+      .spinner {
+        border: 4px solid rgba(78, 205, 196, 0.1);
+        border-top: 4px solid #4ecdc4;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-container h3 {
+        color: #4ecdc4;
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+
+      .loading-text {
+        color: #95a5a6;
+        font-size: 14px;
+      }
+
+      /* Error Container */
+      .error-container {
+        text-align: center;
+        padding: 40px 20px;
+        background: rgba(255, 107, 107, 0.1);
+        border-radius: 12px;
+        border: 2px solid #ff6b6b;
+      }
+
+      .error-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+      }
+
+      .error-container h3 {
+        color: #ff6b6b;
+        margin-bottom: 10px;
+      }
+
+      .error-container p {
+        color: #e0e0e0;
+        line-height: 1.6;
+      }
+
+      /* Overall Score Card */
+      .overall-score {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 25px;
+        text-align: center;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        border: 3px solid;
+      }
+
+      .score-emoji {
+        font-size: 48px;
+        margin-bottom: 10px;
+      }
+
+      .score-value {
+        font-size: 56px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .score-label {
+        font-size: 14px;
+        color: white;
+        margin-top: 8px;
+        font-weight: 600;
+      }
+
+      .score-subtitle {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-top: 4px;
+      }
+
+      /* Section Styling */
+      .section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #4ecdc4;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* Sentiment Bars */
+      .sentiment-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .sentiment-bar {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .bar-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .bar-percentage {
+        color: #4ecdc4;
+        font-weight: 700;
+      }
+
+      .bar-background {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        height: 24px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .bar-fill {
+        height: 100%;
+        border-radius: 8px;
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 8px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .bar-fill.positive {
+        background: linear-gradient(90deg, #4ecdc4, #44a08d);
+      }
+
+      .bar-fill.neutral {
+        background: linear-gradient(90deg, #95a5a6, #7f8c8d);
+      }
+
+      .bar-fill.negative {
+        background: linear-gradient(90deg, #ff6b6b, #ee5a6f);
+      }
+
+      .bar-count {
+        font-size: 11px;
+        color: #95a5a6;
+        text-align: right;
+      }
+
+      /* Metrics Grid */
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .metric-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 15px 10px;
+        text-align: center;
+        border: 1px solid rgba(78, 205, 196, 0.2);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+      }
+
+      .metric-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+      }
+
+      .metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #4ecdc4;
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+
+      .metric-label {
+        font-size: 10px;
+        color: #95a5a6;
+        font-weight: 600;
+      }
+
+      /* Visualization Images */
+      .viz-image {
+        width: 100%;
+        border-radius: 8px;
+        margin-top: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .chart-loading {
+        text-align: center;
+        padding: 20px;
+        color: #95a5a6;
+        font-style: italic;
+      }
+
+      .error-text {
+        text-align: center;
+        color: #ff6b6b;
+        padding: 20px;
+        font-size: 12px;
+      }
+
+      /* Comments Container */
+      .comments-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 5px;
+      }
+
+      .comments-container::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .comments-container::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+      }
+
+      .comments-container::-webkit-scrollbar-thumb {
+        background: #4ecdc4;
+        border-radius: 3px;
+      }
+
+      /* Sentiment Section Styling */
+      .sentiment-section {
+        margin-bottom: 20px;
+      }
+
+      .sentiment-section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 15px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        font-weight: 700;
+      }
+
+      .positive-header {
+        background: linear-gradient(
+          135deg,
+          rgba(78, 205, 196, 0.2),
+          rgba(68, 160, 141, 0.2)
+        );
+        border-left: 4px solid #4ecdc4;
+      }
+
+      .negative-header {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 107, 107, 0.2),
+          rgba(238, 90, 111, 0.2)
+        );
+        border-left: 4px solid #ff6b6b;
+      }
+
+      .neutral-header {
+        background: linear-gradient(
+          135deg,
+          rgba(149, 165, 166, 0.2),
+          rgba(127, 140, 141, 0.2)
+        );
+        border-left: 4px solid #95a5a6;
+      }
+
+      .sentiment-section-icon {
+        font-size: 24px;
+      }
+
+      .sentiment-section-title {
+        flex: 1;
+        font-size: 14px;
+        color: #e0e0e0;
+      }
+
+      .sentiment-section-count {
+        font-size: 11px;
+        color: #95a5a6;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 4px 10px;
+        border-radius: 12px;
+      }
+
+      .no-comments {
+        text-align: center;
+        color: #95a5a6;
+        padding: 20px;
+        font-style: italic;
+        font-size: 12px;
+      }
+
+      .comment-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 12px;
+        border-left: 3px solid #4ecdc4;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .comment-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .comment-number {
+        font-size: 11px;
+        color: #95a5a6;
+        font-weight: 600;
+      }
+
+      .comment-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: white;
+      }
+
+      .comment-text {
+        font-size: 12px;
+        line-height: 1.5;
+        color: #e0e0e0;
+        word-wrap: break-word;
+      }
+
+      /* Footer */
+      .footer {
+        background: linear-gradient(135deg, #434343 0%, #000000 100%);
+        padding: 20px;
+        text-align: center;
+        margin-top: 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(78, 205, 196, 0.3);
+      }
+
+      .footer-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #4ecdc4;
+        margin-bottom: 8px;
+      }
+
+      .footer-text {
+        font-size: 11px;
+        color: #95a5a6;
+        margin: 4px 0;
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .section {
+        animation: fadeIn 0.5s ease-out;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎬 YouTube Sentiment Insights</h1>
+    <div id="output"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>

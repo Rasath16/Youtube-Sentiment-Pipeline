@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Sentiment Insights",
+  "version": "2.0.0",
+  "description": "AI-powered sentiment analysis for YouTube comments using LightGBM model (80.5% accuracy) from MLflow",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": ["tabs", "activeTab", "scripting"],
+  "host_permissions": [
+    "http://127.0.0.1:5000/*",
+    "http://localhost:5000/*",
+    "https://www.googleapis.com/*",
+    "https://www.youtube.com/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
