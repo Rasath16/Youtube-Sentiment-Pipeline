@@ -1,5 +1,5 @@
 # DVC PIPELINE CONFIGURATION
-# Model: LinearSVC (Final Production Model)
+# Model: LightGBM with ADASYN (Final Production Model - Experiment 8)
 
 stages:
   data_ingestion:
@@ -36,22 +36,37 @@ stages:
       - src/model/model_building.py
     params:
       - model_building.model_type
-      - model_building.C
-      - model_building.loss
-      - model_building.penalty
-      - model_building.dual
-      - model_building.max_iter
-      - model_building.tol
-      - model_building.class_weight
+      - model_building.n_estimators
+      - model_building.learning_rate
+      - model_building.num_leaves
+      - model_building.max_depth
+      - model_building.min_child_samples
+      - model_building.subsample
+      - model_building.colsample_bytree
+      - model_building.reg_alpha
+      - model_building.reg_lambda
+      - model_building.min_split_gain
       - model_building.random_state
+      - model_building.n_jobs
+      - model_building.verbose
+      - feature_engineering.vectorizer_type
+      - feature_engineering.ngram_range
+      - feature_engineering.max_features
+      - feature_engineering.min_df
+      - feature_engineering.max_df
+      - feature_engineering.use_idf
+      - feature_engineering.sublinear_tf
+      - imbalance_handling.method
+      - imbalance_handling.random_state
     outs:
-      - models/linearsvc_model.pkl
+      - models/lightgbm_model.pkl
+      - models/lightgbm_model.txt
       - models/tfidf_vectorizer.pkl
 
   model_evaluation:
     cmd: python src/model/model_evaluation.py
     deps:
-      - models/linearsvc_model.pkl
+      - models/lightgbm_model.pkl
       - models/tfidf_vectorizer.pkl
       - data/interim/train_processed.csv
       - data/interim/test_processed.csv
@@ -61,6 +76,7 @@ stages:
       - model_evaluation.cv_shuffle
       - model_evaluation.cv_random_state
       - model_evaluation.metrics
+      - model_evaluation.track_per_class
     metrics:
       - metrics/metrics.json:
           cache: false
@@ -70,6 +86,8 @@ stages:
       - plots/confusion_matrix_normalized.png:
           cache: false
       - plots/per_class_performance.png:
+          cache: false
+      - plots/feature_importance.png:
           cache: false
     outs:
       - reports/classification_report.txt

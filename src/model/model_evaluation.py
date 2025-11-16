@@ -182,15 +182,17 @@ def perform_cross_validation(model, X_train, y_train, params: dict) -> dict:
         raise
 
 
-def create_visualizations(cm, y_test, y_pred, classes, root_dir: str) -> list:
+def create_visualizations(cm, y_test, y_pred, classes, model, vectorizer, root_dir: str) -> list:
     """
-    Create and save visualization plots.
+    Create and save visualization plots including feature importance.
     
     Args:
         cm: Confusion matrix
         y_test: True labels
         y_pred: Predicted labels
         classes: Unique class labels
+        model: Trained LightGBM model
+        vectorizer: TF-IDF vectorizer
         root_dir: Root directory path
     
     Returns:
@@ -257,6 +259,31 @@ def create_visualizations(cm, y_test, y_pred, classes, root_dir: str) -> list:
         plot_paths.append(perf_path)
         logger.info(f'Per-class performance saved: {perf_path}')
         
+        # 4. Feature Importance (Top 20) - LightGBM specific
+        try:
+            feature_importance = model.feature_importances_
+            feature_names = vectorizer.get_feature_names_out()
+            
+            # Get top 20 features
+            top_indices = np.argsort(feature_importance)[-20:]
+            top_features = [feature_names[i] for i in top_indices]
+            top_importance = feature_importance[top_indices]
+            
+            plt.figure(figsize=(10, 8))
+            plt.barh(range(len(top_features)), top_importance, alpha=0.8, color='steelblue')
+            plt.yticks(range(len(top_features)), top_features, fontsize=9)
+            plt.xlabel('Importance', fontsize=12)
+            plt.title('Top 20 Feature Importance', fontsize=14, fontweight='bold')
+            plt.grid(axis='x', alpha=0.3)
+            plt.tight_layout()
+            feat_path = os.path.join(plots_dir, 'feature_importance.png')
+            plt.savefig(feat_path, dpi=300, bbox_inches='tight')
+            plt.close()
+            plot_paths.append(feat_path)
+            logger.info(f'Feature importance plot saved: {feat_path}')
+        except Exception as e:
+            logger.warning(f'Could not create feature importance plot: {e}')
+        
         return plot_paths
         
     except Exception as e:
@@ -272,13 +299,20 @@ def save_classification_report(report: dict, root_dir: str) -> str:
         
         report_path = os.path.join(reports_dir, 'classification_report.txt')
         
+        class_names = {
+            '0': 'Positive',
+            '1': 'Neutral', 
+            '2': 'Negative (Minority)'
+        }
+        
         with open(report_path, 'w') as f:
-            f.write("CLASSIFICATION REPORT - LinearSVC Model\n")
+            f.write("CLASSIFICATION REPORT - LightGBM Model (ADASYN)\n")
             f.write("="*80 + "\n\n")
             
             for label, metrics in report.items():
                 if isinstance(metrics, dict):
-                    f.write(f"Class {label}:\n")
+                    class_name = class_names.get(str(label), str(label))
+                    f.write(f"Class {label} - {class_name}:\n")
                     f.write(f"  Precision: {metrics['precision']:.6f}\n")
                     f.write(f"  Recall: {metrics['recall']:.6f}\n")
                     f.write(f"  F1-Score: {metrics['f1-score']:.6f}\n")
@@ -333,7 +367,8 @@ def save_experiment_info(run_id: str, model_uri: str, metrics: dict,
         experiment_info = {
             'run_id': run_id,
             'model_uri': model_uri,
-            'model_type': 'LinearSVC',
+            'model_type': 'LightGBM',
+            'imbalance_method': 'ADASYN',
             'test_metrics': {
                 'accuracy': metrics['accuracy'],
                 'f1_weighted': metrics['f1_weighted'],
@@ -343,6 +378,11 @@ def save_experiment_info(run_id: str, model_uri: str, metrics: dict,
             'cross_validation': {
                 'cv_mean': cv_metrics['cv_mean'],
                 'cv_std': cv_metrics['cv_std']
+            },
+            'per_class_f1': {
+                'positive': metrics['f1_per_class'][0],
+                'neutral': metrics['f1_per_class'][1],
+                'negative': metrics['f1_per_class'][2]
             }
         }
         
@@ -367,7 +407,7 @@ def get_root_directory() -> str:
 def main():
     try:
         logger.info('='*80)
-        logger.info('Starting Model Evaluation Process')
+        logger.info('Starting Model Evaluation Process - LightGBM + ADASYN')
         logger.info('='*80)
         
         # Get root directory
@@ -388,7 +428,7 @@ def main():
             # Load model and vectorizer
             logger.info('\nLoading model and vectorizer...')
             models_dir = os.path.join(root_dir, 'models')
-            model = load_pickle(os.path.join(models_dir, 'linearsvc_model.pkl'))
+            model = load_pickle(os.path.join(models_dir, 'lightgbm_model.pkl'))
             vectorizer = load_pickle(os.path.join(models_dir, 'tfidf_vectorizer.pkl'))
             
             # Load processed data
@@ -411,7 +451,10 @@ def main():
             for section, section_params in params.items():
                 if isinstance(section_params, dict):
                     for key, value in section_params.items():
-                        mlflow.log_param(f"{section}.{key}", value)
+                        if isinstance(value, (int, float, str, bool)):
+                            mlflow.log_param(f"{section}.{key}", value)
+                        else:
+                            mlflow.log_param(f"{section}.{key}", str(value))
                 else:
                     mlflow.log_param(section, section_params)
             
@@ -437,17 +480,18 @@ def main():
             
             # Log per-class metrics
             classes = np.unique(y_test)
-            for idx, class_label in enumerate(classes):
-                mlflow.log_metric(f'test_class_{class_label}_precision', 
+            class_names = ['positive', 'neutral', 'negative']
+            for idx, (class_label, class_name) in enumerate(zip(classes, class_names)):
+                mlflow.log_metric(f'test_class_{class_label}_{class_name}_precision', 
                                 metrics['precision_per_class'][idx])
-                mlflow.log_metric(f'test_class_{class_label}_recall', 
+                mlflow.log_metric(f'test_class_{class_label}_{class_name}_recall', 
                                 metrics['recall_per_class'][idx])
-                mlflow.log_metric(f'test_class_{class_label}_f1', 
+                mlflow.log_metric(f'test_class_{class_label}_{class_name}_f1', 
                                 metrics['f1_per_class'][idx])
             
-            # Create visualizations
+            # Create visualizations (including feature importance)
             logger.info('\nCreating visualizations...')
-            plot_paths = create_visualizations(cm, y_test, y_pred, classes, root_dir)
+            plot_paths = create_visualizations(cm, y_test, y_pred, classes, model, vectorizer, root_dir)
             
             # Log plots to MLflow
             for plot_path in plot_paths:
@@ -478,13 +522,18 @@ def main():
             logger.info('\nLogging model to MLflow...')
             model_info = mlflow.sklearn.log_model(
                 model,
-                "linearsvc_model",
+                "lightgbm_model",
                 signature=signature,
                 input_example=input_example
             )
             
             # Log vectorizer as artifact
             mlflow.log_artifact(os.path.join(models_dir, 'tfidf_vectorizer.pkl'))
+            
+            # Log native LightGBM model if exists
+            native_model_path = os.path.join(models_dir, 'lightgbm_model.txt')
+            if os.path.exists(native_model_path):
+                mlflow.log_artifact(native_model_path)
             
             # Save experiment info for model registration
             logger.info('\nSaving experiment info...')
@@ -506,19 +555,29 @@ def main():
             )
             
             # Set tags
-            mlflow.set_tag("model_type", "LinearSVC")
+            mlflow.set_tag("model_type", "LightGBM")
             mlflow.set_tag("task", "Sentiment Analysis")
             mlflow.set_tag("dataset", "Reddit Comments")
-            mlflow.set_tag("preprocessing", "TF-IDF + Undersampling")
+            mlflow.set_tag("preprocessing", "TF-IDF + ADASYN")
             mlflow.set_tag("pipeline", "DVC")
+            mlflow.set_tag("imbalance_method", "adasyn")
+            mlflow.set_tag("experiment", "Experiment_8")
+            mlflow.set_tag("production_ready", "true")
             
             logger.info('\n' + '='*80)
             logger.info('Model Evaluation Completed Successfully!')
             logger.info('='*80)
-            logger.info(f'Test Accuracy: {metrics["accuracy"]:.6f}')
+            logger.info(f'Model: LightGBM with ADASYN')
+            logger.info(f'Test Accuracy: {metrics["accuracy"]:.6f} ({metrics["accuracy"]*100:.2f}%)')
             logger.info(f'Test F1-Score (weighted): {metrics["f1_weighted"]:.6f}')
+            logger.info(f'Test F1-Score (macro): {metrics["f1_macro"]:.6f}')
             logger.info(f'CV F1-Score: {cv_metrics["cv_mean"]:.6f} (+/- {cv_metrics["cv_std"]*2:.6f})')
-            logger.info(f'MLflow Run ID: {run.info.run_id}')
+            logger.info('\nPer-Class F1-Scores:')
+            logger.info(f'  Positive (0): {metrics["f1_per_class"][0]:.6f}')
+            logger.info(f'  Neutral (1): {metrics["f1_per_class"][1]:.6f}')
+            logger.info(f'  Negative (2): {metrics["f1_per_class"][2]:.6f}')
+            logger.info(f'\nMLflow Run ID: {run.info.run_id}')
+            logger.info(f'Model URI: {model_uri}')
             logger.info('='*80)
             
     except Exception as e:

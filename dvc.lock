@@ -34,8 +34,8 @@ stages:
       size: 5580348
     - path: src/data/data_preprocessing.py
       hash: md5
-      md5: 72230a5c6ce8995e34c9a89f5c94c98e
-      size: 9172
+      md5: ad960b4d5023dc0db676102af6228e11
+      size: 9759
     params:
       params.yaml:
         text_preprocessing.lemmatization: true
@@ -45,66 +45,86 @@ stages:
     outs:
     - path: data/interim/test_processed.csv
       hash: md5
-      md5: 40842f9ce21e23bc13bfcbc2684150e2
-      size: 1330604
+      md5: a48e20629d3a8afb977765d088e84411
+      size: 1328954
     - path: data/interim/train_processed.csv
       hash: md5
-      md5: 5ce2d83e1c83b5d9eb67379aef37171f
-      size: 5545070
+      md5: eaf9950af2e48083c78566686715e541
+      size: 5538470
   model_building:
     cmd: python src/model/model_building.py
     deps:
     - path: data/interim/train_processed.csv
       hash: md5
-      md5: 5ce2d83e1c83b5d9eb67379aef37171f
-      size: 5545070
+      md5: eaf9950af2e48083c78566686715e541
+      size: 5538470
     - path: src/model/model_building.py
       hash: md5
-      md5: 8f7f7753fcc66ff95474e17619fc29d1
-      size: 11995
+      md5: 7bcdf9df34796ec2b2c259d29a8f5c37
+      size: 12535
     params:
       params.yaml:
-        model_building.C: 0.23098248082428105
-        model_building.class_weight: balanced
-        model_building.dual: false
-        model_building.loss: squared_hinge
-        model_building.max_iter: 1000
-        model_building.model_type: LinearSVC
-        model_building.penalty: l1
+        feature_engineering.max_df: 1.0
+        feature_engineering.max_features: 1000
+        feature_engineering.min_df: 1
+        feature_engineering.ngram_range:
+        - 1
+        - 2
+        feature_engineering.sublinear_tf: false
+        feature_engineering.use_idf: true
+        feature_engineering.vectorizer_type: TfidfVectorizer
+        imbalance_handling.method: adasyn
+        imbalance_handling.random_state: 42
+        model_building.colsample_bytree: 0.6691021439526331
+        model_building.learning_rate: 0.18918009986816445
+        model_building.max_depth: 5
+        model_building.min_child_samples: 5
+        model_building.min_split_gain: 0.15980739765326024
+        model_building.model_type: LightGBM
+        model_building.n_estimators: 282
+        model_building.n_jobs: -1
+        model_building.num_leaves: 23
         model_building.random_state: 42
-        model_building.tol: 9.868483511694040e-05
+        model_building.reg_alpha: 4.959913257818725e-08
+        model_building.reg_lambda: 4.974689304807198e-05
+        model_building.subsample: 0.7735411813855708
+        model_building.verbose: -1
     outs:
-    - path: models/linearsvc_model.pkl
+    - path: models/lightgbm_model.pkl
       hash: md5
-      md5: 26a20ce97dd29b954ed393ced679ac2f
-      size: 24634
+      md5: 5443dd95cfb3b9fdd270e8cac30e3015
+      size: 1539305
+    - path: models/lightgbm_model.txt
+      hash: md5
+      md5: 23b7f252b5825dd782060b050a0c066d
+      size: 1537433
     - path: models/tfidf_vectorizer.pkl
       hash: md5
-      md5: e69bbe0843279dc02c9b419375e9a28d
+      md5: f3640712c1182983407fd5385603044d
       size: 36806
   model_evaluation:
     cmd: python src/model/model_evaluation.py
     deps:
     - path: data/interim/test_processed.csv
       hash: md5
-      md5: 40842f9ce21e23bc13bfcbc2684150e2
-      size: 1330604
+      md5: a48e20629d3a8afb977765d088e84411
+      size: 1328954
     - path: data/interim/train_processed.csv
       hash: md5
-      md5: 5ce2d83e1c83b5d9eb67379aef37171f
-      size: 5545070
-    - path: models/linearsvc_model.pkl
+      md5: eaf9950af2e48083c78566686715e541
+      size: 5538470
+    - path: models/lightgbm_model.pkl
       hash: md5
-      md5: 26a20ce97dd29b954ed393ced679ac2f
-      size: 24634
+      md5: 5443dd95cfb3b9fdd270e8cac30e3015
+      size: 1539305
     - path: models/tfidf_vectorizer.pkl
       hash: md5
-      md5: e69bbe0843279dc02c9b419375e9a28d
+      md5: f3640712c1182983407fd5385603044d
       size: 36806
     - path: src/model/model_evaluation.py
       hash: md5
-      md5: 9265777be0ab35a3aae4e3c9f35c6eda
-      size: 20812
+      md5: f630bfdd5f76ae0d6e0113c460ab29f2
+      size: 24027
     params:
       params.yaml:
         model_evaluation.cv_folds: 5
@@ -118,52 +138,57 @@ stages:
         - recall_macro
         - f1_weighted
         - f1_macro
+        model_evaluation.track_per_class: true
     outs:
     - path: metrics/metrics.json
       hash: md5
-      md5: 0273a416402fe9b0842c7228e34e113a
-      size: 271
+      md5: 164cb9ea011cee9dcadfae74905c4a85
+      size: 268
     - path: plots/confusion_matrix.png
       hash: md5
-      md5: 77ede29819b8601438892abb4fd2c057
-      size: 85112
+      md5: 31a77676147dc9c96a6a71d173932e66
+      size: 83902
     - path: plots/confusion_matrix_normalized.png
       hash: md5
-      md5: 7b17d56721d397380d9d77df50f402fe
-      size: 107283
+      md5: 77f26e58aaf920b6c9e63e70cff2dd0f
+      size: 108629
+    - path: plots/feature_importance.png
+      hash: md5
+      md5: 88d1e4b9b4756a461c3ff5cf61dd52da
+      size: 100175
     - path: plots/per_class_performance.png
       hash: md5
-      md5: bfbeac4c839c4e378927a3b1b2184ad0
-      size: 74849
+      md5: e96ea8f1bf6fe21aa1e9fa5f9ccf5e31
+      size: 75592
     - path: reports/classification_report.txt
       hash: md5
-      md5: 7ba62135806a6c38b179c6da5e1d8a1e
-      size: 625
+      md5: fedc4b19c550eb2b92b5d2eeffa49fa0
+      size: 702
     - path: reports/experiment_info.json
       hash: md5
-      md5: 90170b84e526a3e251331487de23822e
-      size: 492
+      md5: 060d4e2cb37a2f6fe2ef950af20fe614
+      size: 674
   model_registration:
     cmd: python src/model/register_model.py
     deps:
     - path: reports/experiment_info.json
       hash: md5
-      md5: 90170b84e526a3e251331487de23822e
-      size: 492
+      md5: 060d4e2cb37a2f6fe2ef950af20fe614
+      size: 674
     - path: src/model/register_model.py
       hash: md5
-      md5: 2c38926a4e531c49bd9f55332cf11c3d
-      size: 9438
+      md5: 0ba8b926149ff0cc5afd3f5024cd4da7
+      size: 14125
     params:
       params.yaml:
-        deployment.model_name: final_linearsvc_model
+        deployment.model_name: final_lightgbm_adasyn_model
         deployment.model_version: 1.0.0
         deployment.production_ready: true
-        mlflow.experiment_name: Final Model Evaluation
+        mlflow.experiment_name: Final Model Evaluation - LightGBM ADASYN
         mlflow.tracking_uri: 
           http://ec2-54-211-18-166.compute-1.amazonaws.com:5000/
     outs:
     - path: reports/model_registry_info.json
       hash: md5
-      md5: 9e7d116514e65d698259cb93a452edfe
-      size: 835
+      md5: 5ee9524b43a3ac18a2d04dcf969d521c
+      size: 1237

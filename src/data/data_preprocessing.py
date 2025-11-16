@@ -129,6 +129,15 @@ def normalize_text(df: pd.DataFrame, params: dict) -> pd.DataFrame:
         initial_count = len(df)
         logger.debug(f'Starting text normalization on {initial_count} samples')
         
+        # CRITICAL: Remap labels to [0, 1, 2] for model compatibility
+        # Original: -1 (negative), 0 (neutral), 1 (positive)
+        # Remapped: 2 (negative), 0 (neutral), 1 (positive)
+        if 'category' in df.columns:
+            logger.info('Remapping category labels: -1→2, 0→0, 1→1')
+            df['category'] = df['category'].map({-1: 2, 0: 0, 1: 1})
+            df = df.dropna(subset=['category'])  # Remove any unmapped values
+            logger.info(f'Class distribution after remapping: {df["category"].value_counts().sort_index().to_dict()}')
+        
         # Extract preprocessing parameters
         preproc_params = params['text_preprocessing']
         

@@ -1,2 +1,4 @@
 /linearsvc_model.pkl
 /tfidf_vectorizer.pkl
+/lightgbm_model.pkl
+/lightgbm_model.txt
