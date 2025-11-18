@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let pageToken = "";
 
     try {
-      while (comments.length < 10000) {
+      while (comments.length < 1000) {
         const response = await fetch(
           `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=100&pageToken=${pageToken}&key=${API_KEY}`
         );
@@ -417,12 +417,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   function displayFooter(modelInfo) {
     outputDiv.innerHTML += `
       <div class="footer">
-        <div class="footer-title">🤖 Powered by ${modelInfo.model_type} Model</div>
-        <div class="footer-text">Model: final_lightgbm_adasyn_model</div>
-        <div class="footer-text">Version: ${modelInfo.model_version} • Stage: Staging</div>
-        <div class="footer-text">Accuracy: ${modelInfo.test_metrics.accuracy}</div>
-        <div class="footer-text">Loaded from MLflow Registry</div>
-      </div>`;
+      <div class="footer-title">🤖 Powered by ${
+        modelInfo.model_type
+      } Model</div>
+      <div class="footer-text">Model: final_lightgbm_adasyn_model</div>
+      <div class="footer-text">Version: ${
+        modelInfo.model_version || "N/A"
+      } • Stage: Staging</div>
+      <div class="footer-text">Accuracy: ${
+        modelInfo.test_metrics?.accuracy ?? "Unknown"
+      }</div>
+      <div class="footer-text">Loaded from MLflow Registry</div>
+    </div>`;
   }
 
   // Fetch and display visualization images
