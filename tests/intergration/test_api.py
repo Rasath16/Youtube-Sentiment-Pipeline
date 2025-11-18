@@ -35,7 +35,7 @@ mock_model_info = {
 }
 
 # Fix: Use 'mocker' fixture from pytest-mock instead of @patch decorator
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def client(mocker): # FIX 1: Change 'mock_loader' to 'mocker'
     # Setup: Mock the model loading function using mocker
     mocker.patch( # FIX 2: Use mocker.patch
