@@ -7,6 +7,7 @@ import yaml
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import logging
+import string
 
 # Logging configuration
 logger = logging.getLogger('data_preprocessing')
