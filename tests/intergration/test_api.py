@@ -2,17 +2,19 @@ import pytest
 import json
 from unittest.mock import MagicMock, patch
 
+import pytest
+import json
+# from unittest.mock import MagicMock, patch # REMOVED: No longer needed
+
 # Note: We need to import the app only when necessary to control imports
 # We use a fixture to configure the app for testing
-# Import app_instance for testing purposes, assuming app.py is well-structured
-# The file flask_api/app.py is complex to import due to global execution. 
-# We'll use a fixture to safely initialize the app's test client.
+from scipy.sparse import csr_matrix # Added missing import
 
 # A simple mock model and vectorizer for local API testing
 class MockVectorizer:
     def transform(self, comments):
         # Always return a placeholder sparse matrix
-        from scipy.sparse import csr_matrix
+        # Use csr_matrix from scipy.sparse
         return csr_matrix([[1, 0]] * len(comments))
 
 class MockModel:
@@ -32,12 +34,14 @@ mock_model_info = {
     "accuracy": 0.85
 }
 
-# Patch the load_model_from_registry function for all tests
-@patch('flask_api.app.load_model_from_registry')
+# Fix: Use 'mocker' fixture from pytest-mock instead of @patch decorator
 @pytest.fixture(scope='module')
-def client(mock_loader):
-    # Setup: Mock the model loading function to return local mocks
-    mock_loader.return_value = (mock_model, mock_vectorizer, mock_model_info)
+def client(mocker): # FIX 1: Change 'mock_loader' to 'mocker'
+    # Setup: Mock the model loading function using mocker
+    mocker.patch( # FIX 2: Use mocker.patch
+        'flask_api.app.load_model_from_registry',
+        return_value=(mock_model, mock_vectorizer, mock_model_info)
+    )
     
     # Import the app after patching to ensure the global model loading uses the mock
     from flask_api.app import app
