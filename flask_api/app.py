@@ -17,6 +17,9 @@ from mlflow.tracking import MlflowClient
 import matplotlib.dates as mdates
 import pickle
 import logging
+import os
+IS_TEST = os.getenv("IS_TEST", "false").lower() == "true"
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -94,69 +97,53 @@ def preprocess_comment(comment):
 # MODEL LOADING FROM MLFLOW REGISTRY
 # ============================================================================
 def load_model_from_registry(model_name, stage_or_version):
-    """
-    Load LightGBM model and vectorizer from MLflow Model Registry.
-    
-    Args:
-        model_name: Name of the registered model
-        stage_or_version: Stage name ("Staging", "Production") or version number
-    
-    Returns:
-        Tuple of (model, vectorizer, model_info)
-    """
+    if IS_TEST:
+        print("⚠️ Running in TEST mode — loading DUMMY model")
+        class DummyModel:
+            def predict(self, X):
+                return ["positive"] * len(X)
+
+        class DummyVectorizer:
+            def transform(self, X):
+                return X
+
+        dummy_model = DummyModel()
+        dummy_vectorizer = DummyVectorizer()
+        model_info = {"model_name": "dummy", "accuracy": 0.85}
+        return dummy_model, dummy_vectorizer, model_info
+
     try:
-        # Set MLflow tracking URI
         mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
         logger.info(f"MLflow Tracking URI: {MLFLOW_TRACKING_URI}")
-        
+
         client = MlflowClient()
-        
-        # Determine if stage or version
-        if stage_or_version in ["Staging", "Production", "Archived", "None"]:
-            # Load by stage
-            model_uri = f"models:/{model_name}/{stage_or_version}"
-            logger.info(f"Loading model from stage: {stage_or_version}")
-        else:
-            # Load by version number
-            model_uri = f"models:/{model_name}/{stage_or_version}"
-            logger.info(f"Loading model version: {stage_or_version}")
-        
-        logger.info(f"Model URI: {model_uri}")
-        
-        # Load the model
+        model_uri = f"models:/{model_name}/{stage_or_version}"
+        logger.info(f"Loading model from URI: {model_uri}")
+
         model = mlflow.sklearn.load_model(model_uri)
         logger.info("✓ LightGBM model loaded successfully from MLflow Registry")
-        
+
         # Get model version details
         if stage_or_version in ["Staging", "Production", "Archived", "None"]:
             model_versions = client.get_latest_versions(model_name, stages=[stage_or_version])
             if model_versions:
                 model_version = model_versions[0]
-                run_id = model_version.run_id
-                version_number = model_version.version
             else:
                 raise ValueError(f"No model found in {stage_or_version} stage")
         else:
             model_version = client.get_model_version(model_name, stage_or_version)
-            run_id = model_version.run_id
-            version_number = model_version.version
-        
-        logger.info(f"Model version: {version_number}")
-        logger.info(f"Run ID: {run_id}")
-        
-        # Download the vectorizer artifact from the same run
-        artifact_path = f"runs:/{run_id}/tfidf_vectorizer.pkl"
-        logger.info(f"Loading vectorizer from: {artifact_path}")
-        
-        # Download artifact to local path
-        local_path = mlflow.artifacts.download_artifacts(artifact_uri=artifact_path)
-        
+
+        run_id = model_version.run_id
+        version_number = model_version.version
+        logger.info(f"Model version: {version_number}, Run ID: {run_id}")
+
         # Load vectorizer
+        artifact_path = f"runs:/{run_id}/tfidf_vectorizer.pkl"
+        local_path = mlflow.artifacts.download_artifacts(artifact_uri=artifact_path)
         with open(local_path, 'rb') as f:
             vectorizer = pickle.load(f)
-        
         logger.info("✓ TF-IDF vectorizer loaded successfully")
-        
+
         # Get model tags/metrics
         model_info = {
             "model_name": model_name,
@@ -166,26 +153,15 @@ def load_model_from_registry(model_name, stage_or_version):
             "model_type": "LightGBM",
             "imbalance_method": "ADASYN"
         }
-        
         try:
             tags = {tag.key: tag.value for tag in model_version.tags}
             if 'test_accuracy' in tags:
                 model_info['accuracy'] = float(tags['test_accuracy'])
-                logger.info(f"Model Accuracy: {tags['test_accuracy']}")
-            if 'test_f1_weighted' in tags:
-                model_info['f1_score'] = float(tags['test_f1_weighted'])
-                logger.info(f"Model F1-Score: {tags['test_f1_weighted']}")
-            if 'f1_positive' in tags:
-                model_info['f1_positive'] = float(tags['f1_positive'])
-            if 'f1_neutral' in tags:
-                model_info['f1_neutral'] = float(tags['f1_neutral'])
-            if 'f1_negative' in tags:
-                model_info['f1_negative'] = float(tags['f1_negative'])
         except Exception as e:
             logger.warning(f"Could not retrieve model tags: {e}")
-        
+
         return model, vectorizer, model_info
-        
+
     except Exception as e:
         logger.error(f"Error loading model from registry: {e}")
         raise
