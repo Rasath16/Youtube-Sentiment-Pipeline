@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let pageToken = "";
 
     try {
-      while (comments.length < 500) {
+      while (comments.length < 10000) {
         const response = await fetch(
           `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=100&pageToken=${pageToken}&key=${API_KEY}`
         );
@@ -420,7 +420,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <div class="footer-title">🤖 Powered by ${modelInfo.model_type} Model</div>
         <div class="footer-text">Model: final_lightgbm_adasyn_model</div>
         <div class="footer-text">Version: ${modelInfo.model_version} • Stage: Staging</div>
-        <div class="footer-text">Accuracy: ${modelInfo.accuracy}</div>
+        <div class="footer-text">Accuracy: ${modelInfo.test_metrics.accuracy}</div>
         <div class="footer-text">Loaded from MLflow Registry</div>
       </div>`;
   }
