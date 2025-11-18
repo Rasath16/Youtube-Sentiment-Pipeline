@@ -238,6 +238,16 @@ def home():
     
     return jsonify(status)
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint for CI/CD monitoring."""
+    return jsonify({
+        "status": "healthy",
+        "service": "youtube-sentiment-analyzer",
+        "version": "1.0.0",
+        "model_loaded": model is not None,
+        "vectorizer_loaded": vectorizer is not None
+    }), 200
 
 @app.route('/model_info', methods=['GET'])
 def get_model_info():

@@ -1,11 +1,16 @@
-from setuptools import find_packages, setup
+from setuptools import setup, find_packages
 
 setup(
-    name = 'youtube',
-    version= '0.0.0',
-    author= 'Rasath',
-    author_email= 'tharusharasathml@gmail.com',
-    packages= find_packages(),
-    install_requires = []
-
+    name="youtube-sentiment-analyzer",
+    version="1.0.0",
+    packages=find_packages(),
+    install_requires=[
+        "flask",
+        "mlflow",
+        "nltk",
+        "pandas",
+        "numpy",
+        "scikit-learn",
+        "lightgbm",
+    ],
 )
