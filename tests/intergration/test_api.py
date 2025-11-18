@@ -1,61 +1,62 @@
 import pytest
 import json
-import sys 
-# Removed unnecessary imports like pickle, csr_matrix since we are mocking at a higher level
-from scipy.sparse import csr_matrix # Keep this for MockVectorizer
-from pytest_mock import mocker 
+import sys # <-- CRITICAL IMPORT
+from scipy.sparse import csr_matrix 
+# from pytest_mock import mocker # No longer needed if not using mocker.patch
 
-# --- Mock Classes (Minimal changes) ---
+# --- Mock Classes ---
 class MockVectorizer:
     """Mock class that mimics the TfidfVectorizer's transform method."""
     def transform(self, comments):
+        # Always return a placeholder sparse matrix
         return csr_matrix([[1, 0]] * len(comments))
 
 class MockModel:
     """Mock class for the LightGBM model."""
     def predict(self, features):
+        # Internal mapping: 0: Neutral, 1: Positive, 2: Negative
         return [1, 2, 0, 1, 2] * (len(features.toarray()) // 5 + 1)
     
     def predict_proba(self, features):
+        # Simulate high confidence prediction
         return [[0.1, 0.8, 0.1]] * len(features.toarray())
 
-# Global mock instances
-mock_model = MockModel()
-mock_vectorizer = MockVectorizer()
-
-
-# --- Fixture with Direct Application Function Mocking ---
+# --- Fixture with Direct Variable Injection on Module ---
 
 @pytest.fixture(scope='function')
-def client(mocker): 
+def client(): 
     
-    # FIX: Mock the application's entire loading function and ensure the returned 
-    # model_info dictionary is fully populated, bypassing the tag parsing issue.
-    mocker.patch(
-        'flask_api.app.load_model_from_registry',
-        return_value=(mock_model, mock_vectorizer, {
-            "version": 99,
-            "accuracy": 0.85, # CRITICAL: Manually set accuracy to fix the KeyError
-            "model_name": "final_lightgbm_adasyn_model",
-            "model_type": "LightGBM",
-            "stage": "Staging",
-            "run_id": "mock_run_id",
-            "imbalance_method": "ADASYN"
-        })
-    )
-
-    # Force module reload (Still necessary due to global initialization)
+    # 1. Force reload if necessary (ensures a clean test state for globals)
     if 'flask_api.app' in sys.modules:
         del sys.modules['flask_api.app']
         
+    # 2. Import the app. This runs the global initialization in app.py, 
+    # which will FAIL and set the global variables to None and {}.
     from flask_api.app import app
     
+    # 3. CRITICAL FIX: Use sys.modules to access the module's namespace and 
+    # manually override the failed global variables with mock instances.
+    module = sys.modules['flask_api.app']
+    
+    module.model = MockModel()
+    module.vectorizer = MockVectorizer()
+    module.model_info = {
+        "version": 99,
+        "accuracy": 0.85, # Manually set for test_home_endpoint
+        "model_name": "final_lightgbm_adasyn_model",
+        "model_type": "LightGBM",
+        "stage": "Staging",
+        "run_id": "mock_run_id",
+        "imbalance_method": "ADASYN"
+    }
+
+    # 4. Set testing configuration and yield client
     app.config['TESTING'] = True
     
     with app.test_client() as client:
         yield client 
 
-# --- API Tests (remain unchanged, as the setup error is now fixed) ---
+# --- API Tests (remain unchanged) ---
 
 def test_health_check(client):
     """Test the /health endpoint"""
