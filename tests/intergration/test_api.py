@@ -1,20 +1,12 @@
 import pytest
 import json
-from unittest.mock import MagicMock, patch
-
-import pytest
-import json
-# from unittest.mock import MagicMock, patch # REMOVED: No longer needed
-
-# Note: We need to import the app only when necessary to control imports
-# We use a fixture to configure the app for testing
-from scipy.sparse import csr_matrix # Added missing import
+from scipy.sparse import csr_matrix 
+import sys # <-- ADDED IMPORT: Needed to force module reload
 
 # A simple mock model and vectorizer for local API testing
 class MockVectorizer:
     def transform(self, comments):
         # Always return a placeholder sparse matrix
-        # Use csr_matrix from scipy.sparse
         return csr_matrix([[1, 0]] * len(comments))
 
 class MockModel:
@@ -30,21 +22,31 @@ class MockModel:
 mock_model = MockModel()
 mock_vectorizer = MockVectorizer()
 mock_model_info = {
+    # Added keys required by the / endpoint check in app.py
     "version": 99,
-    "accuracy": 0.85
+    "accuracy": 0.85, 
+    "model_type": "LightGBM",
+    "stage": "Staging",
+    "run_id": "mock_run_id",
 }
 
-# Fix: Use 'mocker' fixture from pytest-mock instead of @patch decorator
+
+# FIX: Use 'function' scope. Use mocker to patch. Force module reload to run global init again.
 @pytest.fixture(scope='function')
-def client(mocker): # FIX 1: Change 'mock_loader' to 'mocker'
-    # Setup: Mock the model loading function using mocker
-    mocker.patch( # FIX 2: Use mocker.patch
+def client(mocker): 
+    # 1. Apply the mock to the function called globally on module import.
+    mocker.patch(
         'flask_api.app.load_model_from_registry',
         return_value=(mock_model, mock_vectorizer, mock_model_info)
     )
     
-    # Import the app after patching to ensure the global model loading uses the mock
-    from flask_api.app import app
+    # 2. Force the Flask app module to reload. This makes the interpreter 
+    # re-execute the global initialization, which now calls the MOCKED function.
+    if 'flask_api.app' in sys.modules:
+        del sys.modules['flask_api.app']
+        
+    from flask_api.app import app # Force Reload
+    
     app.config['TESTING'] = True
     
     # Use Flask's built-in test client
@@ -58,6 +60,7 @@ def test_health_check(client):
     response = client.get('/health')
     assert response.status_code == 200
     data = json.loads(response.data)
+    # FIX: model_loaded will now be True
     assert data['status'] == 'healthy'
     assert data['model_loaded'] == True
 
@@ -67,6 +70,7 @@ def test_home_endpoint(client):
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data['status'] == 'running'
+    # FIX: model_accuracy will now exist in the model_info dictionary
     assert data['model_accuracy'] == '85.00%'
 
 # --- API Prediction Tests ---
@@ -78,6 +82,7 @@ def test_predict_single_comment(client):
                            data=json.dumps({"comments": [comment]}), 
                            content_type='application/json')
     
+    # FIX: Status code will now be 200 because the model is loaded
     assert response.status_code == 200
     data = json.loads(response.data)
     
@@ -95,6 +100,7 @@ def test_predict_multiple_comments(client):
                            data=json.dumps({"comments": comments}), 
                            content_type='application/json')
     
+    # FIX: Status code will now be 200
     assert response.status_code == 200
     data = json.loads(response.data)
     
@@ -112,6 +118,7 @@ def test_predict_no_comments(client):
                            data=json.dumps({"comments": []}), 
                            content_type='application/json')
     
+    # FIX: Status code will now be 400 because the model is loaded and handles this gracefully
     assert response.status_code == 400
     data = json.loads(response.data)
     assert 'error' in data
