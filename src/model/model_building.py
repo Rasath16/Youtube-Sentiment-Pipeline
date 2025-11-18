@@ -27,7 +27,7 @@ logger.addHandler(file_handler)
 
 
 def load_params(params_path: str) -> dict:
-    """Load parameters from a YAML file."""
+    
     try:
         with open(params_path, 'r') as file:
             params = yaml.safe_load(file)
@@ -45,7 +45,7 @@ def load_params(params_path: str) -> dict:
 
 
 def load_data(file_path: str) -> pd.DataFrame:
-    """Load data from a CSV file."""
+    
     try:
         df = pd.read_csv(file_path)
         df.fillna('', inplace=True)  # Fill any NaN values
@@ -61,16 +61,7 @@ def load_data(file_path: str) -> pd.DataFrame:
 
 
 def apply_tfidf(train_data: pd.DataFrame, params: dict) -> tuple:
-    """
-    Apply TF-IDF vectorization to the training data.
-    
-    Args:
-        train_data: DataFrame with 'clean_comment' and 'category' columns
-        params: Dictionary with feature engineering parameters
-    
-    Returns:
-        Tuple of (X_train_tfidf, y_train, vectorizer)
-    """
+
     try:
         # Extract feature engineering parameters
         feat_params = params['feature_engineering']
@@ -119,17 +110,7 @@ def apply_tfidf(train_data: pd.DataFrame, params: dict) -> tuple:
 
 
 def handle_imbalance(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> tuple:
-    """
-    Apply ADASYN oversampling to handle class imbalance.
-    
-    Args:
-        X_train: Training features
-        y_train: Training labels
-        params: Dictionary with imbalance handling parameters
-    
-    Returns:
-        Tuple of (X_train_resampled, y_train_resampled)
-    """
+
     try:
         # Extract imbalance handling parameters
         imb_params = params['imbalance_handling']
@@ -166,17 +147,7 @@ def handle_imbalance(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> 
 
 
 def train_lightgbm(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> LGBMClassifier:
-    """
-    Train a LightGBM model.
-    
-    Args:
-        X_train: Training features (after resampling)
-        y_train: Training labels (after resampling)
-        params: Dictionary with model building parameters
-    
-    Returns:
-        Trained LightGBM model
-    """
+
     try:
         # Extract model building parameters
         model_params = params['model_building']
@@ -229,14 +200,7 @@ def train_lightgbm(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> LG
 
 
 def save_artifacts(vectorizer, model, root_dir: str) -> None:
-    """
-    Save the vectorizer and model to the models directory.
-    
-    Args:
-        vectorizer: Trained TF-IDF vectorizer
-        model: Trained LightGBM model
-        root_dir: Root directory path
-    """
+
     try:
         # Create models directory if it doesn't exist
         models_dir = os.path.join(root_dir, 'models')

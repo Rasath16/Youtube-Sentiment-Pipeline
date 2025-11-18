@@ -23,7 +23,7 @@ logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
 def load_params(params_path: str) -> dict:
-    """Load parameters from a YAML file."""
+
     try:
         with open(params_path, 'r') as file:
             params = yaml.safe_load(file)
@@ -40,7 +40,7 @@ def load_params(params_path: str) -> dict:
         raise
 
 def load_data(data_url: str) -> pd.DataFrame:
-    """Load data from a CSV file."""
+    
     try:
         df = pd.read_csv(data_url)
         logger.debug('Data loaded from %s with shape %s', data_url, df.shape)
@@ -54,7 +54,7 @@ def load_data(data_url: str) -> pd.DataFrame:
         raise
 
 def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Preprocess the data by handling missing values, duplicates, and empty strings."""
+    
     try:
         initial_shape = df.shape
         logger.debug('Initial data shape: %s', initial_shape)
@@ -86,7 +86,7 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
         raise
 
 def save_data(train_data: pd.DataFrame, test_data: pd.DataFrame, data_path: str) -> None:
-    """Save the train and test datasets, creating the raw folder if it doesn't exist."""
+    
     try:
         raw_data_path = os.path.join(data_path, 'raw')
         

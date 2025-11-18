@@ -30,9 +30,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ============================================================================
+
 # CONFIGURATION
-# ============================================================================
 MLFLOW_TRACKING_URI = "http://ec2-54-211-18-166.compute-1.amazonaws.com:5000/"
 MODEL_NAME = "final_lightgbm_adasyn_model"  # Updated for LightGBM model
 MODEL_STAGE = "Staging"  # Change to "Production" after promotion
@@ -51,9 +50,8 @@ SENTIMENT_TO_YOUTUBE = {
     2: -1   # Negative → -1
 }
 
-# ============================================================================
+
 # PREPROCESSING FUNCTION
-# ============================================================================
 def preprocess_comment(comment):
     """
     Apply preprocessing transformations to a comment.
@@ -92,21 +90,10 @@ def preprocess_comment(comment):
         return comment
 
 
-# ============================================================================
+
 # MODEL LOADING FROM MLFLOW REGISTRY
-# ============================================================================
 def load_model_from_registry(model_name, stage_or_version):
-    """
-    Load LightGBM model and vectorizer from MLflow Model Registry.
-    
-    Args:
-        model_name: Name of the registered model
-        stage_or_version: Stage name ("Staging", "Production") or version number
-    
-    Returns:
-        Tuple of (model, vectorizer, model_info)
-    """
-    
+   
     try:
         # Set MLflow tracking URI
         mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
@@ -194,9 +181,8 @@ def load_model_from_registry(model_name, stage_or_version):
         raise
 
 
-# ============================================================================
+
 # INITIALIZE MODEL AT STARTUP
-# ============================================================================
 logger.info("="*80)
 logger.info("🚀 Initializing YouTube Sentiment Analysis API")
 logger.info("="*80)
@@ -217,9 +203,7 @@ except Exception as e:
     model_info = {}
 
 
-# ============================================================================
 # API ENDPOINTS
-# ============================================================================
 
 @app.route('/')
 def home():
@@ -293,20 +277,7 @@ def get_model_info():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    Predict sentiment for YouTube comments.
-    
-    Request body:
-    {
-        "comments": ["comment1", "comment2", ...]
-    }
-    
-    Response:
-    [
-        {"comment": "comment1", "sentiment": 1, "sentiment_label": "Positive", "confidence": 0.85},
-        ...
-    ]
-    """
+
     if model is None or vectorizer is None:
         return jsonify({"error": "Model not loaded"}), 500
     
@@ -359,18 +330,7 @@ def predict():
 
 @app.route('/predict_with_timestamps', methods=['POST'])
 def predict_with_timestamps():
-    """
-    Predict sentiment for YouTube comments with timestamps.
-    
-    Request body:
-    {
-        "comments": [
-            {"text": "comment1", "timestamp": "2024-01-01T12:00:00"},
-            {"text": "comment2", "timestamp": "2024-01-02T15:30:00"},
-            ...
-        ]
-    }
-    """
+
     if model is None or vectorizer is None:
         return jsonify({"error": "Model not loaded"}), 500
     
@@ -423,10 +383,7 @@ def predict_with_timestamps():
 
 @app.route('/batch_predict', methods=['POST'])
 def batch_predict():
-    """
-    Batch prediction endpoint for large number of comments.
-    Returns aggregated statistics along with predictions.
-    """
+
     if model is None or vectorizer is None:
         return jsonify({"error": "Model not loaded"}), 500
     
@@ -668,9 +625,7 @@ def generate_trend_graph():
         return jsonify({"error": f"Trend graph generation failed: {str(e)}"}), 500
 
 
-# ============================================================================
 # ERROR HANDLERS
-# ============================================================================
 
 @app.errorhandler(404)
 def not_found(error):
@@ -681,9 +636,7 @@ def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
 
-# ============================================================================
 # RUN APPLICATION
-# ============================================================================
 
 if __name__ == '__main__':
     logger.info("="*80)

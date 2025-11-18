@@ -36,7 +36,7 @@ except LookupError:
     nltk.download('omw-1.4', quiet=True)  # Required for wordnet
 
 def load_params(params_path: str) -> dict:
-    """Load parameters from a YAML file."""
+    
     try:
         with open(params_path, 'r') as file:
             params = yaml.safe_load(file)
@@ -58,20 +58,7 @@ def preprocess_comment(comment: str,
                       remove_punctuation: bool = False,
                       remove_numbers: bool = False,
                       lemmatization: bool = True) -> str:
-    """
-    Apply preprocessing transformations to a comment based on parameters.
     
-    Args:
-        comment: Text to preprocess
-        remove_stopwords: Whether to remove stopwords
-        lowercase: Whether to convert to lowercase
-        remove_punctuation: Whether to remove punctuation
-        remove_numbers: Whether to remove numbers
-        lemmatization: Whether to apply lemmatization
-    
-    Returns:
-        Preprocessed text
-    """
     try:
         # Convert to lowercase
         if lowercase:
@@ -116,16 +103,7 @@ def preprocess_comment(comment: str,
         return comment
 
 def normalize_text(df: pd.DataFrame, params: dict) -> pd.DataFrame:
-    """
-    Apply preprocessing to the text data in the dataframe.
-    
-    Args:
-        df: DataFrame with 'clean_comment' column
-        params: Dictionary with preprocessing parameters
-    
-    Returns:
-        DataFrame with preprocessed text
-    """
+
     try:
         initial_count = len(df)
         logger.debug(f'Starting text normalization on {initial_count} samples')
@@ -174,7 +152,7 @@ def normalize_text(df: pd.DataFrame, params: dict) -> pd.DataFrame:
         raise
 
 def save_data(train_data: pd.DataFrame, test_data: pd.DataFrame, data_path: str) -> None:
-    """Save the processed train and test datasets."""
+   
     try:
         interim_data_path = os.path.join(data_path, 'interim')
         logger.debug(f"Creating directory {interim_data_path}")

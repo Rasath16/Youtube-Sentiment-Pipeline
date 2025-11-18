@@ -35,7 +35,7 @@ logger.addHandler(file_handler)
 
 
 def load_params(params_path: str) -> dict:
-    """Load parameters from a YAML file."""
+ 
     try:
         with open(params_path, 'r') as file:
             params = yaml.safe_load(file)
@@ -47,7 +47,7 @@ def load_params(params_path: str) -> dict:
 
 
 def load_data(file_path: str) -> pd.DataFrame:
-    """Load data from a CSV file."""
+
     try:
         df = pd.read_csv(file_path)
         df.fillna('', inplace=True)
@@ -59,7 +59,7 @@ def load_data(file_path: str) -> pd.DataFrame:
 
 
 def load_pickle(file_path: str):
-    """Load pickled object."""
+
     try:
         with open(file_path, 'rb') as file:
             data = pickle.load(file)
@@ -71,17 +71,7 @@ def load_pickle(file_path: str):
 
 
 def evaluate_model(model, X_test, y_test) -> tuple:
-    """
-    Evaluate the model and return comprehensive metrics.
-    
-    Args:
-        model: Trained model
-        X_test: Test features
-        y_test: Test labels
-    
-    Returns:
-        Tuple of (metrics_dict, classification_report, confusion_matrix, predictions)
-    """
+
     try:
         logger.info('Starting model evaluation...')
         
@@ -134,18 +124,7 @@ def evaluate_model(model, X_test, y_test) -> tuple:
 
 
 def perform_cross_validation(model, X_train, y_train, params: dict) -> dict:
-    """
-    Perform cross-validation on the training data.
-    
-    Args:
-        model: Trained model
-        X_train: Training features
-        y_train: Training labels
-        params: CV parameters
-    
-    Returns:
-        Dictionary with CV metrics
-    """
+
     try:
         logger.info('Starting cross-validation...')
         
@@ -183,21 +162,7 @@ def perform_cross_validation(model, X_train, y_train, params: dict) -> dict:
 
 
 def create_visualizations(cm, y_test, y_pred, classes, model, vectorizer, root_dir: str) -> list:
-    """
-    Create and save visualization plots including feature importance.
-    
-    Args:
-        cm: Confusion matrix
-        y_test: True labels
-        y_pred: Predicted labels
-        classes: Unique class labels
-        model: Trained LightGBM model
-        vectorizer: TF-IDF vectorizer
-        root_dir: Root directory path
-    
-    Returns:
-        List of plot file paths
-    """
+
     try:
         logger.info('Creating visualizations...')
         
@@ -292,7 +257,7 @@ def create_visualizations(cm, y_test, y_pred, classes, model, vectorizer, root_d
 
 
 def save_classification_report(report: dict, root_dir: str) -> str:
-    """Save classification report to text file."""
+    
     try:
         reports_dir = os.path.join(root_dir, 'reports')
         os.makedirs(reports_dir, exist_ok=True)
@@ -327,7 +292,7 @@ def save_classification_report(report: dict, root_dir: str) -> str:
 
 
 def save_metrics_json(metrics: dict, cv_metrics: dict, root_dir: str) -> str:
-    """Save metrics to JSON file for DVC."""
+   
     try:
         metrics_dir = os.path.join(root_dir, 'metrics')
         os.makedirs(metrics_dir, exist_ok=True)
@@ -357,7 +322,7 @@ def save_metrics_json(metrics: dict, cv_metrics: dict, root_dir: str) -> str:
 
 def save_experiment_info(run_id: str, model_uri: str, metrics: dict, 
                         cv_metrics: dict, root_dir: str) -> str:
-    """Save experiment information for model registration."""
+    
     try:
         reports_dir = os.path.join(root_dir, 'reports')
         os.makedirs(reports_dir, exist_ok=True)
@@ -399,7 +364,7 @@ def save_experiment_info(run_id: str, model_uri: str, metrics: dict,
 
 
 def get_root_directory() -> str:
-    """Get the root directory."""
+    
     current_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.abspath(os.path.join(current_dir, '../../'))
 

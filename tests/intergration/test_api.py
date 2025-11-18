@@ -1,10 +1,10 @@
 import pytest
 import json
-import sys # <-- CRITICAL IMPORT
+import sys # 
 from scipy.sparse import csr_matrix 
-# from pytest_mock import mocker # No longer needed if not using mocker.patch
 
-# --- Mock Classes ---
+
+
 class MockVectorizer:
     """Mock class that mimics the TfidfVectorizer's transform method."""
     def transform(self, comments):
@@ -21,7 +21,6 @@ class MockModel:
         # Simulate high confidence prediction
         return [[0.1, 0.8, 0.1]] * len(features.toarray())
 
-# --- Fixture with Direct Variable Injection on Module ---
 
 @pytest.fixture(scope='function')
 def client(): 
@@ -30,11 +29,9 @@ def client():
     if 'flask_api.app' in sys.modules:
         del sys.modules['flask_api.app']
         
-    # 2. Import the app. This runs the global initialization in app.py, 
     # which will FAIL and set the global variables to None and {}.
     from flask_api.app import app
     
-    # 3. CRITICAL FIX: Use sys.modules to access the module's namespace and 
     # manually override the failed global variables with mock instances.
     module = sys.modules['flask_api.app']
     
@@ -56,7 +53,6 @@ def client():
     with app.test_client() as client:
         yield client 
 
-# --- API Tests (remain unchanged) ---
 
 def test_health_check(client):
     """Test the /health endpoint"""

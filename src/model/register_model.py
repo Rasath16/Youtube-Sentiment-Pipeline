@@ -23,7 +23,7 @@ logger.addHandler(file_handler)
 
 
 def load_params(params_path: str) -> dict:
-    """Load parameters from a YAML file."""
+    
     try:
         with open(params_path, 'r') as file:
             params = yaml.safe_load(file)
@@ -38,7 +38,7 @@ def load_params(params_path: str) -> dict:
 
 
 def load_model_info(file_path: str) -> dict:
-    """Load the model info from a JSON file."""
+    
     try:
         with open(file_path, 'r') as file:
             model_info = json.load(file)
@@ -58,18 +58,7 @@ def load_model_info(file_path: str) -> dict:
 
 def register_model(model_name: str, model_info: dict, model_version: str, 
                   tags: dict = None) -> dict:
-    """
-    Register the model to the MLflow Model Registry.
-    
-    Args:
-        model_name: Name for the registered model
-        model_info: Dictionary with model information
-        model_version: Version string for the model
-        tags: Optional dictionary of tags to add to the model version
-    
-    Returns:
-        Dictionary with registration information
-    """
+
     try:
         logger.info('='*80)
         logger.info('Starting Model Registration Process')
@@ -236,14 +225,7 @@ def save_registry_info(registry_info: dict, root_dir: str) -> str:
 
 
 def promote_to_production(model_name: str, version: str, client) -> None:
-    """
-    Promote a model version to Production stage.
-    
-    Args:
-        model_name: Name of the registered model
-        version: Version to promote
-        client: MLflow tracking client
-    """
+
     try:
         logger.info('\n' + '='*80)
         logger.info('OPTIONAL: Promoting Model to Production')
@@ -263,7 +245,7 @@ def promote_to_production(model_name: str, version: str, client) -> None:
 
 
 def get_root_directory() -> str:
-    """Get the root directory."""
+    
     current_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.abspath(os.path.join(current_dir, '../../'))
 
