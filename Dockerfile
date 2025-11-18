@@ -34,7 +34,7 @@ ENV FLASK_APP=flask_api/app.py
 ENV PYTHONPATH=/app
 
 # Expose port
-EXPOSE 5000
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
