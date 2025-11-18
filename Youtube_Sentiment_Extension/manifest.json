@@ -10,7 +10,7 @@
   "host_permissions": [
     "http://127.0.0.1:5000/*",
     "http://localhost:5000/*",
-    "http://ec2-54-211-18-166.compute-1.amazonaws.com:5000/*",
+    "http://ec2-54-211-18-166.compute-1.amazonaws.com:80/*",
     "https://www.googleapis.com/*",
     "https://www.youtube.com/*"
   ],
