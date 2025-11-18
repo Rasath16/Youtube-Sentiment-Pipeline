@@ -22,7 +22,16 @@ This project demonstrates proficiency across the entire Machine Learning lifecyc
   * **Experiment Tracking (MLflow):** Integrates **MLflow** for tracking model runs, logging parameters, metrics, and registering the final model in the Model Registry.
   * **Containerization (Docker):** The prediction service is containerized using **Docker** (`Dockerfile`) for consistent deployment across environments.
   * **CI/CD Pipeline:** A robust CI/CD workflow is set up with **GitHub Actions** (`ci-cd.yml`) to automate testing, Docker image building (ECR), and deployment to an **EC2** instance.
-  * **RESTful API:** A high-performance inference API built with **Flask** and served by **Gunicorn**, featuring endpoints for single/batch prediction, chart generation, and model health checks.
+  * **RESTful API:** A high-performance inference API built with **Flask** and served by **Gunicorn**.
+
+-----
+
+## 🗃️ Dataset Source
+
+The sentiment model was trained on a publicly available, labeled dataset sourced from **Reddit posts and comments**.
+
+  * **Dataset Link:** [Reddit Sentimental analysis Dataset]([https://www.kaggle.com/datasets/cosmos98/twitter-and-reddit-sentimental-analysis-dataset](https://raw.githubusercontent.com/Himanshu-1703/reddit-sentiment-analysis/refs/heads/main/data/reddit.csv))
+  * **Rationale for using Reddit Data:** While the target domain is YouTube comments, Reddit data provides a highly valuable and practical training source because it shares several critical characteristics with YouTube comments: **informal language, high prevalence of internet slang, use of emojis/emoticons, and short, conversational sentence structure**. This cross-platform approach allows the model to learn general "social media English" sentiment features, which is highly effective and more practical than acquiring a massive, custom-labeled YouTube dataset.
 
 -----
 
@@ -47,13 +56,13 @@ To further enhance the accuracy, scalability, and robustness of this MLOps pipel
 ### 1\. Model & Data Accuracy
 
   * **Deep Learning (Transfer Learning):** Replace the classical ML approach (LightGBM + TF-IDF) with a transformer-based model like **BERT** or **RoBERTa**. This would capture deeper contextual meaning in comments, potentially boosting accuracy significantly.
+  * **Multilingual Support:** Implement **language detection** on incoming comments and switch to a **multilingual transformer model** (e.g., multilingual BERT) to accurately analyze non-English comments, significantly broadening the application's reach.
   * **Data Augmentation:** Implement techniques to generate synthetic comments or augment the minority classes to improve generalization, especially for sarcastic or nuanced language.
-  * **Multilingual Support:** Extend the data preprocessing pipeline to handle multiple languages and integrate a multilingual model (e.g., multilingual BERT) to analyze non-English comments, which are common on YouTube.
 
 ### 2\. MLOps & Production Robustness
 
   * **Automated Model Retraining:** Implement a scheduled DVC pipeline or a CI/CD job that automatically re-runs model training if the data drift score exceeds a set threshold.
-  * **Data and Model Monitoring:** Integrate tools like **Prometheus** and **Grafana** (or dedicated ML monitoring tools like Arize/WhyLabs) to monitor:
+  * **Data and Model Monitoring:** Integrate tools like **Prometheus** and **Grafana** to monitor:
       * **Data Drift:** Track changes in the distribution of incoming comments compared to training data.
       * **Model Performance Degradation:** Alert if the model's prediction accuracy or inference latency drops in production.
   * **Scalable Serving:** Migrate the API from a single EC2 instance to a managed container service like **AWS ECS/Fargate** or **Kubernetes** to allow for dynamic scaling based on real-time traffic demand.
