@@ -20,9 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Check API health and get model info
   const modelInfo = await checkAPIHealth();
   if (!modelInfo) {
-    showError(
-      "Unable to connect to sentiment analysis API. Please ensure Flask server is running on port 5000."
-    );
+    showError("Unable to connect to sentiment analysis API.");
     return;
   }
 
