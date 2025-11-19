@@ -1,8 +1,8 @@
 {
-    "test_accuracy": 0.8054083435249354,
-    "test_precision_weighted": 0.8089940958365981,
-    "test_recall_weighted": 0.8054083435249354,
-    "test_f1_weighted": 0.8015648572677485,
-    "cv_f1_mean": 0.80811947788895,
-    "cv_f1_std": 0.004452349916317182
+    "test_accuracy": 0.791156462585034,
+    "test_precision_weighted": 0.7970310612294184,
+    "test_recall_weighted": 0.791156462585034,
+    "test_f1_weighted": 0.7873132949300454,
+    "cv_f1_mean": 0.7960894820017523,
+    "cv_f1_std": 0.004801831428637226
 }
