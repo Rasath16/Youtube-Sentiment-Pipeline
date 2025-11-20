@@ -41,11 +41,11 @@ The final deployed LightGBM model was evaluated on the held-out test set, achiev
 
 | Metric | Value | Notes |
 | :--- | :--- | :--- |
-| **Test Accuracy** | `80.54%` | Overall correct classification rate. |
-| **Test F1-Score (Weighted)** | `80.16%` | Balanced measure of precision and recall, crucial for multi-class problems. |
-| **Test Precision (Weighted)** | `80.90%` | Weighted average of precision across all three classes. |
-| **Test Recall (Weighted)** | `80.54%` | Weighted average of recall across all three classes. |
-| **Cross-Validation F1 (Mean)** | `80.81%` | Average performance stability during training. |
+| **Test Accuracy** | `79.12%` | Overall correct classification rate. |
+| **Test F1-Score (Weighted)** | `78.73%` | Balanced measure of precision and recall, crucial for multi-class problems. |
+| **Test Precision (Weighted)** | `79.70%` | Weighted average of precision across all three classes. |
+| **Test Recall (Weighted)** | `79.11%` | Weighted average of recall across all three classes. |
+| **Cross-Validation F1 (Mean)** | `79.60%` | Average performance stability during training. |
 
 -----
 
