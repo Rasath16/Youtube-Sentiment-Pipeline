@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 # CONFIGURATION
-MLFLOW_TRACKING_URI = "http://ec2-54-211-18-166.compute-1.amazonaws.com:5000/"
+MLFLOW_TRACKING_URI = "http://localhost:5000"
 MODEL_NAME = "final_lightgbm_adasyn_model"  # Updated for LightGBM model
 MODEL_STAGE = "Staging"  # Change to "Production" after promotion
 
