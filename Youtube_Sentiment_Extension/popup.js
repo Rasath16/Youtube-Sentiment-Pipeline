@@ -4,7 +4,7 @@
 
 document.addEventListener("DOMContentLoaded", async () => {
   const outputDiv = document.getElementById("output");
-  const API_KEY = "AIzaSyDzl1Tk97HmU6cPokN_zISceU-XwAR6N58"; // Your YouTube Data API key
+  const API_KEY = "AIzaSyAu7vHREXrcIG3UYOb2ySP6fW6m6ya6uv0"; // Your YouTube Data API key
   const API_URL = "http://ec2-54-211-18-166.compute-1.amazonaws.com:8080"; // Your Flask API URL
 
   // Sentiment label mapping (YouTube format: -1, 0, 1)
