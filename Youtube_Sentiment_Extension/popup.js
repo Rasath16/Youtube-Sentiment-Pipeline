@@ -177,11 +177,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       while (comments.length < 1000) {
-        const response = await fetch(
-          `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=100&pageToken=${pageToken}&key=${API_KEY}`
-        );
+        // Construct URL correctly, handling empty pageToken if necessary
+        let url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=100&key=${API_KEY}`;
+        if (pageToken) {
+          url += `&pageToken=${pageToken}`;
+        }
 
+        const response = await fetch(url);
         const data = await response.json();
+
+        // CHECK FOR API ERRORS HERE
+        if (!response.ok) {
+          console.error("YouTube API Error:", data);
+          showError(`YouTube API Error: ${data.error.message}`);
+          return []; // Return empty to stop execution, error is already shown
+        }
 
         if (data.items) {
           data.items.forEach((item) => {
@@ -211,7 +221,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     return comments;
   }
-
   // Get sentiment predictions from Flask API
   async function getSentimentPredictions(comments) {
     try {
