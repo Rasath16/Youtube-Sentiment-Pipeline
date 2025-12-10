@@ -5,7 +5,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const outputDiv = document.getElementById("output");
   const API_KEY = "AIzaSyAu7vHREXrcIG3UYOb2ySP6fW6m6ya6uv0";
-  const API_URL = "http://ec2-54-211-18-166.compute-1.amazonaws.com:8080";
+  const API_URL = "https://charlie-enzymolytic-consummately.ngrok-free.dev";
   // Sentiment label mapping (YouTube format: -1, 0, 1)
   const SENTIMENT_LABELS = {
     "-1": { name: "Negative", emoji: "😞", color: "#FF6B6B" },
