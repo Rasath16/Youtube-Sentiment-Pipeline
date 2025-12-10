@@ -33,7 +33,9 @@ logger = logging.getLogger(__name__)
 
 
 # CONFIGURATION
-MLFLOW_TRACKING_URI = "http://localhost:5000"
+import os
+
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
 MODEL_NAME = "final_lightgbm_adasyn_model"  # Updated for LightGBM model
 MODEL_STAGE = "Staging"  # Change to "Production" after promotion
 
