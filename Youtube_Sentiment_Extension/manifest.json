@@ -10,7 +10,7 @@
   "host_permissions": [
     "http://127.0.0.1:8080/*",
     "http://localhost:8080/*",
-    "https://charlie-enzymolytic-consummately.ngrok-free.dev/*",
+    "http://ec2-54-211-18-166.compute-1.amazonaws.com:8080/*",
     "https://www.googleapis.com/*",
     "https://www.youtube.com/*"
   ],
