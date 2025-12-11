@@ -291,7 +291,7 @@ def main():
             'preprocessing': f'tfidf_{imbalance_method.lower()}',
             'imbalance_method': imbalance_method,
             'pipeline': 'dvc',
-            'experiment': 'experiment_8',
+            'experiment': 'experiment_7',
             'production_ready': str(deployment_params.get('production_ready', True)),
             'feature_engineering': 'tfidf_bigrams_1000',
             'n_classes': '3',

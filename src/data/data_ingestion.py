@@ -4,6 +4,7 @@ import os
 from sklearn.model_selection import train_test_split
 import yaml
 import logging
+from dotenv import load_dotenv
 
 # Logging configuration
 logger = logging.getLogger('data_ingestion')
@@ -112,6 +113,7 @@ def save_data(train_data: pd.DataFrame, test_data: pd.DataFrame, data_path: str)
         raise
 
 def main():
+    load_dotenv()
     try:
         logger.info('='*80)
         logger.info('Starting Data Ingestion Process')
@@ -132,7 +134,11 @@ def main():
         logger.info('  - stratify: %s', stratify)
         
         # Load data from the specified URL
-        data_url = 'https://raw.githubusercontent.com/Himanshu-1703/reddit-sentiment-analysis/refs/heads/main/data/reddit.csv'
+        data_url = os.getenv('DATA_SOURCE_URL')
+            
+        if not data_url:
+                raise ValueError("DATA_SOURCE_URL not found in .env file")
+
         logger.info('Loading data from: %s', data_url)
         df = load_data(data_url=data_url)
         

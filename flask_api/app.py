@@ -18,11 +18,11 @@ import matplotlib.dates as mdates
 import pickle
 import logging
 import os
-
+from dotenv import load_dotenv
 
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app) 
 
 # Configure logging
 logging.basicConfig(
@@ -33,9 +33,9 @@ logger = logging.getLogger(__name__)
 
 
 # CONFIGURATION
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://ec2-54-211-18-166.compute-1.amazonaws.com:5000/")
-MODEL_NAME = "final_lightgbm_adasyn_model"  # Updated for LightGBM model
-MODEL_STAGE = "Staging"  # Change to "Production" after promotion
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI") 
+MODEL_NAME = os.getenv("MODEL_NAME", "final_lightgbm_adasyn_model")
+MODEL_STAGE = os.getenv("MODEL_STAGE", "Staging")
 
 # Sentiment label mapping (matches your training)
 SENTIMENT_LABELS = {

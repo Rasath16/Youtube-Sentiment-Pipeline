@@ -129,7 +129,7 @@ mlflow:
     preprocessing: "tfidf_bigrams"
     imbalance_method: "adasyn"
 
-# Model Performance Benchmarks (From Experiment 8)
+# Model Performance Benchmarks (From Experiment 7)
 performance_benchmarks:
   accuracy: 0.794627
   f1_weighted: 0.791073
