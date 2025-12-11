@@ -1,0 +1,58 @@
+EXPERIMENT 6: FINAL MODEL SUMMARY
+================================================================================
+
+MODEL CONFIGURATION
+--------------------------------------------------------------------------------
+Algorithm: LightGBM
+Imbalance Method: ADASYN
+Vectorizer: TF-IDF
+N-gram Range: (1, 2)
+Max Features: 1000
+HPT Trials: 100
+Random State: 42
+
+BEST HYPERPARAMETERS
+--------------------------------------------------------------------------------
+n_estimators: 281
+learning_rate: 0.1189375831701442
+num_leaves: 22
+max_depth: 14
+min_child_samples: 7
+subsample: 0.6598503797444528
+colsample_bytree: 0.6461024739761481
+reg_alpha: 0.0005019095503649326
+reg_lambda: 4.536058842881277
+min_split_gain: 0.8544582930033131
+
+EVALUATION METRICS
+--------------------------------------------------------------------------------
+Accuracy: 0.795036
+Weighted F1-Score: 0.791538
+Weighted Precision: 0.799695
+Weighted Recall: 0.795036
+Macro F1-Score: 0.774927
+CV F1-Score: 0.797248 (+/- 0.013364)
+
+PER-CLASS METRICS
+--------------------------------------------------------------------------------
+
+Class 0 - Positive (0):
+  Precision: 0.760013
+  Recall: 0.945433
+  F1-Score: 0.842643
+
+Class 1 - Neutral (1):
+  Precision: 0.872924
+  Recall: 0.766646
+  F1-Score: 0.816340
+
+Class 2 - Negative (2):
+  Precision: 0.720536
+  Recall: 0.618788
+  F1-Score: 0.665797
+
+CONFUSION MATRIX
+--------------------------------------------------------------------------------
+[[2391   56   82]
+ [ 422 2418  314]
+ [ 333  296 1021]]

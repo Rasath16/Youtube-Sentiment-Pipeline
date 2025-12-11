@@ -135,15 +135,29 @@ def register_model(model_name: str, model_info: dict, model_version: str,
         logger.info(f'  - Test F1 (weighted): {test_metrics.get("f1_weighted", 0):.6f}')
         logger.info(f'  - CV F1: {cv_metrics.get("cv_mean", 0):.6f} (+/- {cv_metrics.get("cv_std", 0):.6f})')
         
-        # Transition the model to "Staging" stage
-        logger.info('\nTransitioning model to Staging stage...')
+        # Transition the model to  stage
+        accuracy = test_metrics.get('accuracy', 0)
+        DEPLOYMENT_THRESHOLD = 0.75  # 75% Accuracy
+
+        logger.info(f'\nChecking deployment threshold (Accuracy >= {DEPLOYMENT_THRESHOLD:.2%})...')
+        
+        if accuracy >= DEPLOYMENT_THRESHOLD:
+            target_stage = "Production"
+            logger.info(f'✅ PASSED: Model accuracy {accuracy:.2%} meets the threshold.')
+            logger.info(f'🚀 Promoting model directly to PRODUCTION!')
+        else:
+            target_stage = "Staging"
+            logger.info(f'⚠️ FAILED: Model accuracy {accuracy:.2%} is below threshold.')
+            logger.info(f'⬇️ Keeping model in STAGING for manual review.')
+
+        # Transition to the determined stage
         client.transition_model_version_stage(
             name=model_name,
             version=registered_model.version,
-            stage="Staging",
-            archive_existing_versions=False
+            stage=target_stage,
+            archive_existing_versions=True  
         )
-        logger.info(f'Model transitioned to Staging stage')
+        logger.info(f'Model transitioned to {target_stage} stage')
         
         # Add comprehensive description to model version
         description = (
