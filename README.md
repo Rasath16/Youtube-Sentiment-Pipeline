@@ -4,8 +4,9 @@ This project implements a scalable, MLOps-driven pipeline for analyzing the sent
 
 The system covers the entire lifecycle: data versioning, iterative model experimentation (MLflow), automated CI/CD deployment, a high-performance Flask API, and a user-friendly browser plugin that visualizes sentiment trends directly on YouTube video pages.
 
-[![Watch the video](https://img.youtube.com/vi/fI2g6Cocwwo/maxresdefault.jpg)](https://www.youtube.com/watch?v=fI2g6Cocwwo)
+## Click on thumbnail to watch the demo 👇 </center>
 
+[![Watch the video](https://img.youtube.com/vi/fI2g6Cocwwo/maxresdefault.jpg)](https://www.youtube.com/watch?v=fI2g6Cocwwo)
 
 ---
 
